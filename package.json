@@ -15,7 +15,13 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset",
-    "setup": "npm install && npm run db:generate && npm run db:push && npm run db:seed"
+    "setup": "npm install && npm run db:generate && npm run db:push && npm run db:seed",
+    "docker:build": "docker build -t ap-repaire .",
+    "docker:run": "docker run -p 3000:3000 ap-repaire",
+    "docker:compose": "docker-compose up -d",
+    "docker:compose:down": "docker-compose down",
+    "deploy:vercel": "vercel --prod",
+    "deploy:railway": "railway up"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",

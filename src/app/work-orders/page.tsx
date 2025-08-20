@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Layout from '@/components/layout/Layout'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, EyeIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
 interface WorkOrder {
@@ -59,6 +59,10 @@ export default function WorkOrders() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof WorkOrder | 'customerName' | 'technicianName' | 'minerModelName' | 'estimatedCost'
+    direction: 'asc' | 'desc'
+  } | null>(null)
   const [formData, setFormData] = useState({
     customerId: '',
     technicianId: '',
@@ -146,6 +150,88 @@ export default function WorkOrders() {
     }
   }
 
+  // Sorting function
+  const sortData = (data: WorkOrder[]) => {
+    if (!sortConfig) return data
+
+    return [...data].sort((a, b) => {
+      let aValue: any
+      let bValue: any
+
+      switch (sortConfig.key) {
+        case 'orderNumber':
+          aValue = a.orderNumber.toLowerCase()
+          bValue = b.orderNumber.toLowerCase()
+          break
+        case 'customerName':
+          aValue = a.customer.name.toLowerCase()
+          bValue = b.customer.name.toLowerCase()
+          break
+        case 'technicianName':
+          aValue = a.technician.name.toLowerCase()
+          bValue = b.technician.name.toLowerCase()
+          break
+        case 'minerModelName':
+          aValue = `${a.minerModel.brand} ${a.minerModel.model}`.toLowerCase()
+          bValue = `${b.minerModel.brand} ${b.minerModel.model}`.toLowerCase()
+          break
+        case 'issue':
+          aValue = a.issue.toLowerCase()
+          bValue = b.issue.toLowerCase()
+          break
+        case 'status':
+          aValue = a.status.toLowerCase()
+          bValue = b.status.toLowerCase()
+          break
+        case 'priority':
+          aValue = a.priority.toLowerCase()
+          bValue = b.priority.toLowerCase()
+          break
+        case 'estimatedCost':
+          aValue = a.estimatedCost || 0
+          bValue = b.estimatedCost || 0
+          break
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime()
+          bValue = new Date(b.createdAt).getTime()
+          break
+        default:
+          aValue = a[sortConfig.key]
+          bValue = b[sortConfig.key]
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1
+      }
+      return 0
+    })
+  }
+
+  // Handle sort
+  const handleSort = (key: keyof WorkOrder | 'customerName' | 'technicianName' | 'minerModelName' | 'estimatedCost') => {
+    let direction: 'asc' | 'desc' = 'asc'
+    
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    
+    setSortConfig({ key, direction })
+  }
+
+  // Get sort icon
+  const getSortIcon = (key: keyof WorkOrder | 'customerName' | 'technicianName' | 'minerModelName' | 'estimatedCost') => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <ChevronUpIcon className="h-4 w-4 text-gray-400" />
+    }
+    
+    return sortConfig.direction === 'asc' 
+      ? <ChevronUpIcon className="h-4 w-4 text-blue-600" />
+      : <ChevronDownIcon className="h-4 w-4 text-blue-600" />
+  }
+
   const filteredWorkOrders = workOrders.filter(order => {
     const matchesSearch = 
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -157,6 +243,8 @@ export default function WorkOrders() {
     
     return matchesSearch && matchesStatus
   })
+
+  const sortedWorkOrders = sortData(filteredWorkOrders)
 
   const getStatusColor = (status: string) => {
     const statusLower = status.toLowerCase()
@@ -289,29 +377,77 @@ export default function WorkOrders() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('common.actions')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('workOrders.orderNumber')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('orderNumber')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('workOrders.orderNumber')}</span>
+                      {getSortIcon('orderNumber')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('workOrders.customer')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('customerName')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('workOrders.customer')}</span>
+                      {getSortIcon('customerName')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('workOrders.technician')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('technicianName')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('workOrders.technician')}</span>
+                      {getSortIcon('technicianName')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('workOrders.minerModel')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('minerModelName')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('workOrders.minerModel')}</span>
+                      {getSortIcon('minerModelName')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('workOrders.issue')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('issue')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('workOrders.issue')}</span>
+                      {getSortIcon('issue')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('common.status')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('common.status')}</span>
+                      {getSortIcon('status')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('common.priority')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('priority')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('common.priority')}</span>
+                      {getSortIcon('priority')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('workOrders.estimatedCost')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('estimatedCost')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('workOrders.estimatedCost')}</span>
+                      {getSortIcon('estimatedCost')}
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -323,7 +459,7 @@ export default function WorkOrders() {
                     </td>
                   </tr>
                 ) : (
-                  filteredWorkOrders.map((order) => (
+                  sortedWorkOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">

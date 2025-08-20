@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Layout from '@/components/layout/Layout'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
 interface MinerModel {
@@ -25,6 +25,10 @@ export default function Miners() {
   const [brandFilter, setBrandFilter] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof MinerModel | 'hashRate' | 'power'
+    direction: 'asc' | 'desc'
+  } | null>(null)
   const [formData, setFormData] = useState({
     brand: '',
     model: '',
@@ -100,6 +104,76 @@ export default function Miners() {
     }
   }
 
+  // Sorting function
+  const sortData = (data: MinerModel[]) => {
+    if (!sortConfig) return data
+
+    return [...data].sort((a, b) => {
+      let aValue: any
+      let bValue: any
+
+      switch (sortConfig.key) {
+        case 'brand':
+          aValue = a.brand.toLowerCase()
+          bValue = b.brand.toLowerCase()
+          break
+        case 'model':
+          aValue = a.model.toLowerCase()
+          bValue = b.model.toLowerCase()
+          break
+        case 'series':
+          aValue = a.series.toLowerCase()
+          bValue = b.series.toLowerCase()
+          break
+        case 'hashRate':
+          aValue = a.hashRate.toLowerCase()
+          bValue = b.hashRate.toLowerCase()
+          break
+        case 'power':
+          aValue = a.power.toLowerCase()
+          bValue = b.power.toLowerCase()
+          break
+        case 'isActive':
+          aValue = a.isActive ? 1 : 0
+          bValue = b.isActive ? 1 : 0
+          break
+        default:
+          aValue = a[sortConfig.key]
+          bValue = b[sortConfig.key]
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1
+      }
+      return 0
+    })
+  }
+
+  // Handle sort
+  const handleSort = (key: keyof MinerModel | 'hashRate' | 'power') => {
+    let direction: 'asc' | 'desc' = 'asc'
+    
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    
+    setSortConfig({ key, direction })
+  }
+
+  // Get sort icon
+  const getSortIcon = (key: keyof MinerModel | 'hashRate' | 'power') => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <ChevronUpIcon className="h-4 w-4 text-gray-400" />
+    }
+    
+    return sortConfig.direction === 'asc' 
+      ? <ChevronUpIcon className="h-4 w-4 text-blue-600" />
+      : <ChevronDownIcon className="h-4 w-4 text-blue-600" />
+  }
+
   const filteredMinerModels = minerModels.filter(miner => {
     const matchesSearch = 
       miner.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -110,6 +184,8 @@ export default function Miners() {
     
     return matchesSearch && matchesBrand
   })
+
+  const sortedMinerModels = sortData(filteredMinerModels)
 
   return (
     <Layout>
@@ -172,23 +248,59 @@ export default function Miners() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('common.actions')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('miners.brand')}
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('brand')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>{t('miners.brand')}</span>
+                        {getSortIcon('brand')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('miners.model')}
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('model')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>{t('miners.model')}</span>
+                        {getSortIcon('model')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('miners.series')}
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('series')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>{t('miners.series')}</span>
+                        {getSortIcon('series')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('miners.hashRate')}
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('hashRate')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>{t('miners.hashRate')}</span>
+                        {getSortIcon('hashRate')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('miners.power')}
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('power')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>{t('miners.power')}</span>
+                        {getSortIcon('power')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('common.status')}
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('isActive')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>{t('common.status')}</span>
+                        {getSortIcon('isActive')}
+                      </div>
                     </th>
                   </tr>
                 </thead>
@@ -200,7 +312,7 @@ export default function Miners() {
                       </td>
                     </tr>
                   ) : (
-                    filteredMinerModels.map((miner) => (
+                    sortedMinerModels.map((miner) => (
                       <tr key={miner.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Layout from '@/components/layout/Layout'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
 interface Customer {
@@ -27,6 +27,10 @@ export default function Customers() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Customer | 'workOrders' | 'createdAt'
+    direction: 'asc' | 'desc'
+  } | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -192,11 +196,84 @@ export default function Customers() {
     }
   }
 
+  // Sorting function
+  const sortData = (data: Customer[]) => {
+    if (!sortConfig) return data
+
+    return [...data].sort((a, b) => {
+      let aValue: any
+      let bValue: any
+
+      switch (sortConfig.key) {
+        case 'name':
+          aValue = a.name.toLowerCase()
+          bValue = b.name.toLowerCase()
+          break
+        case 'email':
+          aValue = (a.email || '').toLowerCase()
+          bValue = (b.email || '').toLowerCase()
+          break
+        case 'phone':
+          aValue = a.phone
+          bValue = b.phone
+          break
+        case 'company':
+          aValue = (a.company || '').toLowerCase()
+          bValue = (b.company || '').toLowerCase()
+          break
+        case 'workOrders':
+          aValue = a._count?.workOrders || 0
+          bValue = b._count?.workOrders || 0
+          break
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime()
+          bValue = new Date(b.createdAt).getTime()
+          break
+        default:
+          aValue = a[sortConfig.key]
+          bValue = b[sortConfig.key]
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1
+      }
+      return 0
+    })
+  }
+
+  // Handle sort
+  const handleSort = (key: keyof Customer | 'workOrders' | 'createdAt') => {
+    let direction: 'asc' | 'desc' = 'asc'
+    
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    
+    setSortConfig({ key, direction })
+  }
+
+  // Get sort icon
+  const getSortIcon = (key: keyof Customer | 'workOrders' | 'createdAt') => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <ChevronUpIcon className="h-4 w-4 text-gray-400" />
+    }
+    
+    return sortConfig.direction === 'asc' 
+      ? <ChevronUpIcon className="h-4 w-4 text-blue-600" />
+      : <ChevronDownIcon className="h-4 w-4 text-blue-600" />
+  }
+
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (customer.phone && customer.phone.includes(searchTerm)) ||
     (customer.company && customer.company.toLowerCase().includes(searchTerm.toLowerCase()))
   )
+
+  const sortedCustomers = sortData(filteredCustomers)
 
   if (loading) {
     return (
@@ -250,28 +327,64 @@ export default function Customers() {
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
                     {t('common.actions')}
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
-                    {t('common.name')}
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('common.name')}</span>
+                      {getSortIcon('name')}
+                    </div>
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] hidden md:table-cell">
-                    {t('common.email')}
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] hidden md:table-cell cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('email')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('common.email')}</span>
+                      {getSortIcon('email')}
+                    </div>
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px] hidden sm:table-cell">
-                    {t('common.phone')}
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px] hidden sm:table-cell cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('phone')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('common.phone')}</span>
+                      {getSortIcon('phone')}
+                    </div>
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] hidden lg:table-cell">
-                    {t('common.company')}
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] hidden lg:table-cell cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('company')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('common.company')}</span>
+                      {getSortIcon('company')}
+                    </div>
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] hidden lg:table-cell">
-                    {t('customers.totalWorkOrders')}
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] hidden lg:table-cell cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('workOrders')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('customers.totalWorkOrders')}</span>
+                      {getSortIcon('workOrders')}
+                    </div>
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] hidden md:table-cell">
-                    {t('customers.lastVisit')}
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] hidden md:table-cell cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('createdAt')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('customers.lastVisit')}</span>
+                      {getSortIcon('createdAt')}
+                    </div>
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCustomers.map((customer) => (
+                {sortedCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50">
                     <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">

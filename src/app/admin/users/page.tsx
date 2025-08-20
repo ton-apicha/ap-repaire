@@ -15,6 +15,8 @@ import {
   ShieldCheckIcon,
   UserIcon,
   CogIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline'
 
 interface User {
@@ -35,6 +37,10 @@ export default function AdminUsers() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof User
+    direction: 'asc' | 'desc'
+  } | null>(null)
   const [formData, setFormData] = useState({
     email: '',
     name: '',
@@ -65,6 +71,72 @@ export default function AdminUsers() {
     fetchUsers()
   }, [])
 
+  // Sorting function
+  const sortData = (data: User[]) => {
+    if (!sortConfig) return data
+
+    return [...data].sort((a, b) => {
+      let aValue: any
+      let bValue: any
+
+      switch (sortConfig.key) {
+        case 'name':
+          aValue = a.name.toLowerCase()
+          bValue = b.name.toLowerCase()
+          break
+        case 'email':
+          aValue = a.email.toLowerCase()
+          bValue = b.email.toLowerCase()
+          break
+        case 'role':
+          aValue = a.role.toLowerCase()
+          bValue = b.role.toLowerCase()
+          break
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime()
+          bValue = new Date(b.createdAt).getTime()
+          break
+        case 'updatedAt':
+          aValue = new Date(a.updatedAt).getTime()
+          bValue = new Date(b.updatedAt).getTime()
+          break
+        default:
+          aValue = a[sortConfig.key]
+          bValue = b[sortConfig.key]
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1
+      }
+      return 0
+    })
+  }
+
+  // Handle sort
+  const handleSort = (key: keyof User) => {
+    let direction: 'asc' | 'desc' = 'asc'
+    
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    
+    setSortConfig({ key, direction })
+  }
+
+  // Get sort icon
+  const getSortIcon = (key: keyof User) => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <ChevronUpIcon className="h-4 w-4 text-gray-400" />
+    }
+    
+    return sortConfig.direction === 'asc' 
+      ? <ChevronUpIcon className="h-4 w-4 text-blue-600" />
+      : <ChevronDownIcon className="h-4 w-4 text-blue-600" />
+  }
+
   const filteredUsers = users.filter((user) => {
     const matchesSearch = 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -74,6 +146,8 @@ export default function AdminUsers() {
     
     return matchesSearch && matchesRole
   })
+
+  const sortedUsers = sortData(filteredUsers)
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -292,22 +366,46 @@ export default function AdminUsers() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        User
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => handleSort('name')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>User</span>
+                          {getSortIcon('name')}
+                        </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Role
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => handleSort('role')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Role</span>
+                          {getSortIcon('role')}
+                        </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => handleSort('createdAt')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Created</span>
+                          {getSortIcon('createdAt')}
+                        </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Last Updated
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => handleSort('updatedAt')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Last Updated</span>
+                          {getSortIcon('updatedAt')}
+                        </div>
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredUsers.map((user) => (
+                    {sortedUsers.map((user) => (
                       <tr key={user.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">

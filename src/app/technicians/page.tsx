@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Layout from '@/components/layout/Layout'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
 interface Technician {
@@ -27,6 +27,10 @@ export default function Technicians() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Technician | 'workOrders' | 'hourlyRate'
+    direction: 'asc' | 'desc'
+  } | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -198,11 +202,87 @@ export default function Technicians() {
     }
   }
 
+  // Sorting function
+  const sortData = (data: Technician[]) => {
+    if (!sortConfig) return data
+
+    return [...data].sort((a, b) => {
+      let aValue: any
+      let bValue: any
+
+      switch (sortConfig.key) {
+        case 'name':
+          aValue = a.name.toLowerCase()
+          bValue = b.name.toLowerCase()
+          break
+        case 'email':
+          aValue = (a.email || '').toLowerCase()
+          bValue = (b.email || '').toLowerCase()
+          break
+        case 'phone':
+          aValue = a.phone
+          bValue = b.phone
+          break
+        case 'speciality':
+          aValue = (a.speciality || '').toLowerCase()
+          bValue = (b.speciality || '').toLowerCase()
+          break
+        case 'hourlyRate':
+          aValue = parseFloat(String(a.hourlyRate || '0')) || 0
+          bValue = parseFloat(String(b.hourlyRate || '0')) || 0
+          break
+        case 'isActive':
+          aValue = a.isActive ? 1 : 0
+          bValue = b.isActive ? 1 : 0
+          break
+        case 'workOrders':
+          aValue = a._count?.workOrders || 0
+          bValue = b._count?.workOrders || 0
+          break
+        default:
+          aValue = a[sortConfig.key]
+          bValue = b[sortConfig.key]
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1
+      }
+      return 0
+    })
+  }
+
+  // Handle sort
+  const handleSort = (key: keyof Technician | 'workOrders' | 'hourlyRate') => {
+    let direction: 'asc' | 'desc' = 'asc'
+    
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    
+    setSortConfig({ key, direction })
+  }
+
+  // Get sort icon
+  const getSortIcon = (key: keyof Technician | 'workOrders' | 'hourlyRate') => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <ChevronUpIcon className="h-4 w-4 text-gray-400" />
+    }
+    
+    return sortConfig.direction === 'asc' 
+      ? <ChevronUpIcon className="h-4 w-4 text-blue-600" />
+      : <ChevronDownIcon className="h-4 w-4 text-blue-600" />
+  }
+
   const filteredTechnicians = technicians.filter(technician =>
     technician.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (technician.email && technician.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (technician.speciality && technician.speciality.toLowerCase().includes(searchTerm.toLowerCase()))
   )
+
+  const sortedTechnicians = sortData(filteredTechnicians)
 
   if (loading) {
     return (
@@ -256,31 +336,73 @@ export default function Technicians() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('common.actions')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('common.name')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('common.name')}</span>
+                      {getSortIcon('name')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('common.email')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('email')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('common.email')}</span>
+                      {getSortIcon('email')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('common.phone')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('phone')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('common.phone')}</span>
+                      {getSortIcon('phone')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('technicians.speciality')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('speciality')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('technicians.speciality')}</span>
+                      {getSortIcon('speciality')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('technicians.hourlyRate')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('hourlyRate')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('technicians.hourlyRate')}</span>
+                      {getSortIcon('hourlyRate')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('technicians.isActive')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('isActive')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('technicians.isActive')}</span>
+                      {getSortIcon('isActive')}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('technicians.currentWorkOrders')}
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('workOrders')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{t('technicians.currentWorkOrders')}</span>
+                      {getSortIcon('workOrders')}
+                    </div>
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredTechnicians.map((technician) => (
+                {sortedTechnicians.map((technician) => (
                   <tr key={technician.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">

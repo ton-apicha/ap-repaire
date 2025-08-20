@@ -59,6 +59,7 @@ export const en = {
     lastMonth: 'Last Month',
     thisYear: 'This Year',
     lastYear: 'Last Year',
+    language: 'Language',
   },
   dashboard: {
     title: 'Dashboard',

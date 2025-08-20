@@ -59,6 +59,7 @@ export const th = {
     lastMonth: 'เดือนที่แล้ว',
     thisYear: 'ปีนี้',
     lastYear: 'ปีที่แล้ว',
+    language: 'ภาษา',
   },
   dashboard: {
     title: 'แดชบอร์ด',

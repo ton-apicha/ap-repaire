@@ -59,6 +59,7 @@ export const zh = {
     lastMonth: '上月',
     thisYear: '今年',
     lastYear: '去年',
+    language: '语言',
   },
   dashboard: {
     title: '仪表板',

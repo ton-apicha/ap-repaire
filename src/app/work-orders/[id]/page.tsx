@@ -39,16 +39,18 @@ interface WorkOrder {
 }
 
 const statusConfig = {
-  PENDING: { label: 'รอดำเนินการ', color: 'bg-yellow-100 text-yellow-800', icon: ClockIcon },
-  IN_PROGRESS: { label: 'กำลังดำเนินการ', color: 'bg-blue-100 text-blue-800', icon: ClockIcon },
-  COMPLETED: { label: 'เสร็จสิ้น', color: 'bg-green-100 text-green-800', icon: CheckCircleIcon },
-  CANCELLED: { label: 'ยกเลิก', color: 'bg-red-100 text-red-800', icon: ExclamationTriangleIcon },
+  PENDING: { color: 'bg-yellow-100 text-yellow-800', icon: ClockIcon },
+  IN_PROGRESS: { color: 'bg-blue-100 text-blue-800', icon: ClockIcon },
+  COMPLETED: { color: 'bg-green-100 text-green-800', icon: CheckCircleIcon },
+  CANCELLED: { color: 'bg-red-100 text-red-800', icon: ExclamationTriangleIcon },
+  WAITING_PARTS: { color: 'bg-orange-100 text-orange-800', icon: ClockIcon },
 }
 
 const priorityConfig = {
-  LOW: { label: 'ต่ำ', color: 'bg-gray-100 text-gray-800' },
-  MEDIUM: { label: 'ปานกลาง', color: 'bg-yellow-100 text-yellow-800' },
-  HIGH: { label: 'สูง', color: 'bg-red-100 text-red-800' },
+  LOW: { color: 'bg-gray-100 text-gray-800' },
+  MEDIUM: { color: 'bg-yellow-100 text-yellow-800' },
+  HIGH: { color: 'bg-orange-100 text-orange-800' },
+  URGENT: { color: 'bg-red-100 text-red-800' },
 }
 
 export default function WorkOrderDetail() {
@@ -151,6 +153,40 @@ export default function WorkOrderDetail() {
   const statusInfo = statusConfig[workOrder.status as keyof typeof statusConfig]
   const priorityInfo = priorityConfig[workOrder.priority as keyof typeof priorityConfig]
 
+  const getStatusText = (status: string) => {
+    const statusLower = status.toLowerCase()
+    switch (statusLower) {
+      case 'pending':
+        return t('workOrders.status.pending')
+      case 'in_progress':
+        return t('workOrders.status.inProgress')
+      case 'completed':
+        return t('workOrders.status.completed')
+      case 'cancelled':
+        return t('workOrders.status.cancelled')
+      case 'waiting_parts':
+        return t('workOrders.status.waitingParts')
+      default:
+        return status
+    }
+  }
+
+  const getPriorityText = (priority: string) => {
+    const priorityLower = priority.toLowerCase()
+    switch (priorityLower) {
+      case 'low':
+        return t('workOrders.priority.low')
+      case 'medium':
+        return t('workOrders.priority.medium')
+      case 'high':
+        return t('workOrders.priority.high')
+      case 'urgent':
+        return t('workOrders.priority.urgent')
+      default:
+        return priority
+    }
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -181,7 +217,7 @@ export default function WorkOrderDetail() {
           <div className="flex items-center space-x-3">
             <StatusIcon className="h-6 w-6" />
             <div>
-              <h3 className="font-semibold">Status: {statusInfo?.label}</h3>
+              <h3 className="font-semibold">Status: {getStatusText(workOrder.status)}</h3>
               <p className="text-sm opacity-75">
                 Created: {new Date(workOrder.createdAt).toLocaleDateString()}
                 {workOrder.completedAt && ` • Completed: ${new Date(workOrder.completedAt).toLocaleDateString()}`}
@@ -265,7 +301,7 @@ export default function WorkOrderDetail() {
               <div>
                 <label className="text-sm font-medium text-gray-500">Priority</label>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${priorityInfo?.color}`}>
-                  {priorityInfo?.label}
+                  {getPriorityText(workOrder.priority)}
                 </span>
               </div>
             </div>
@@ -320,10 +356,11 @@ export default function WorkOrderDetail() {
                       onChange={(e) => setUpdateData(prev => ({ ...prev, status: e.target.value }))}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value="PENDING">Pending</option>
-                      <option value="IN_PROGRESS">In Progress</option>
-                      <option value="COMPLETED">Completed</option>
-                      <option value="CANCELLED">Cancelled</option>
+                      <option value="PENDING">{t('workOrders.status.pending')}</option>
+                      <option value="IN_PROGRESS">{t('workOrders.status.inProgress')}</option>
+                      <option value="WAITING_PARTS">{t('workOrders.status.waitingParts')}</option>
+                      <option value="COMPLETED">{t('workOrders.status.completed')}</option>
+                      <option value="CANCELLED">{t('workOrders.status.cancelled')}</option>
                     </select>
                   </div>
 

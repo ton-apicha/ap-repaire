@@ -93,20 +93,36 @@ export default function Dashboard() {
         totalRevenue
       })
 
-      // Get recent work orders (last 5)
-      setRecentWorkOrders(workOrders.slice(0, 5))
+      // Get recent work orders (last 5) with customer data
+      const recentOrders = workOrders.slice(0, 5).map((order: any) => ({
+        ...order,
+        customer: customers.find((c: any) => c.id === order.customerId) || null
+      }))
+      setRecentWorkOrders(recentOrders)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
+      // Set default values on error
+      setStats({
+        totalCustomers: 0,
+        totalTechnicians: 0,
+        totalWorkOrders: 0,
+        totalMiners: 0,
+        pendingWorkOrders: 0,
+        completedWorkOrders: 0,
+        totalRevenue: 0
+      })
+      setRecentWorkOrders([])
     } finally {
       setLoading(false)
     }
   }
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    const statusLower = status.toLowerCase()
+    switch (statusLower) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800'
-      case 'inProgress':
+      case 'in_progress':
         return 'bg-blue-100 text-blue-800'
       case 'completed':
         return 'bg-green-100 text-green-800'
@@ -118,7 +134,8 @@ export default function Dashboard() {
   }
 
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
+    const priorityLower = priority.toLowerCase()
+    switch (priorityLower) {
       case 'low':
         return 'bg-green-100 text-green-800'
       case 'medium':
@@ -129,6 +146,38 @@ export default function Dashboard() {
         return 'bg-red-100 text-red-800'
       default:
         return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    const statusLower = status.toLowerCase()
+    switch (statusLower) {
+      case 'pending':
+        return t('workOrders.status.pending')
+      case 'in_progress':
+        return t('workOrders.status.inProgress')
+      case 'completed':
+        return t('workOrders.status.completed')
+      case 'cancelled':
+        return t('workOrders.status.cancelled')
+      default:
+        return status
+    }
+  }
+
+  const getPriorityText = (priority: string) => {
+    const priorityLower = priority.toLowerCase()
+    switch (priorityLower) {
+      case 'low':
+        return t('workOrders.priority.low')
+      case 'medium':
+        return t('workOrders.priority.medium')
+      case 'high':
+        return t('workOrders.priority.high')
+      case 'urgent':
+        return t('workOrders.priority.urgent')
+      default:
+        return priority
     }
   }
 
@@ -237,7 +286,7 @@ export default function Dashboard() {
               {t('dashboard.recentWorkOrders')}
             </h3>
           </div>
-          <div className="overflow-hidden">
+          <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -277,21 +326,21 @@ export default function Dashboard() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {order.customer?.name || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.issue}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate">
+                        {order.issue || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                          {t(`workOrders.status.${order.status}`)}
+                          {getStatusText(order.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(order.priority)}`}>
-                          {t(`workOrders.priority.${order.priority}`)}
+                          {getPriorityText(order.priority)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                     </tr>
                   ))

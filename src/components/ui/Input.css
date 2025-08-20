@@ -1,0 +1,78 @@
+/* Input Component Styles */
+
+.input-field {
+  @apply block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 bg-white;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  @apply placeholder:text-gray-500;
+}
+
+.input-field:focus {
+  @apply text-gray-900;
+}
+
+.input-field::placeholder {
+  @apply text-gray-500;
+}
+
+/* Textarea styles */
+.textarea-field {
+  @apply block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 bg-white;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  @apply placeholder:text-gray-500;
+  @apply resize-vertical;
+}
+
+.textarea-field:focus {
+  @apply text-gray-900;
+}
+
+.textarea-field::placeholder {
+  @apply text-gray-500;
+}
+
+/* Select styles */
+.select-field {
+  @apply block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 bg-white;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.select-field:focus {
+  @apply text-gray-900;
+}
+
+/* Search input styles */
+.search-input {
+  @apply block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white;
+  @apply focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500;
+  @apply placeholder:text-gray-500;
+}
+
+.search-input:focus {
+  @apply text-gray-900;
+}
+
+.search-input::placeholder {
+  @apply text-gray-500;
+}
+
+/* Form label styles */
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+/* Form group styles */
+.form-group {
+  @apply mb-4;
+}
+
+/* Error state */
+.input-error {
+  @apply border-red-300 text-red-900 placeholder-red-300;
+  @apply focus:ring-red-500 focus:border-red-500;
+}
+
+/* Success state */
+.input-success {
+  @apply border-green-300 text-green-900;
+  @apply focus:ring-green-500 focus:border-green-500;
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import '@/components/ui/Input.css'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import SessionProvider from '@/components/providers/SessionProvider'
 import { Toaster } from 'react-hot-toast'

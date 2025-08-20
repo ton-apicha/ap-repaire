@@ -236,7 +236,7 @@ export default function Customers() {
               placeholder={t('common.search')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="search-input sm:text-sm"
             />
           </div>
         </div>
@@ -377,7 +377,7 @@ export default function Customers() {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="input-field mt-1"
                     />
                   </div>
                   <div>
@@ -389,7 +389,7 @@ export default function Customers() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="input-field mt-1"
                     />
                   </div>
                   <div>
@@ -402,7 +402,7 @@ export default function Customers() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       required
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="input-field mt-1"
                     />
                   </div>
                   <div>
@@ -414,7 +414,7 @@ export default function Customers() {
                       name="company"
                       value={formData.company}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="input-field mt-1"
                     />
                   </div>
                   <div>
@@ -426,7 +426,7 @@ export default function Customers() {
                       value={formData.address}
                       onChange={handleInputChange}
                       rows={3}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="textarea-field mt-1"
                     />
                   </div>
                   <div>
@@ -438,7 +438,7 @@ export default function Customers() {
                       name="taxId"
                       value={formData.taxId}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="input-field mt-1"
                     />
                   </div>
                   {/* Footer */}

@@ -170,6 +170,9 @@ export default function Miners() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('common.actions')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('miners.brand')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -187,9 +190,6 @@ export default function Miners() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('common.status')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('common.actions')}
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -202,6 +202,16 @@ export default function Miners() {
                   ) : (
                     filteredMinerModels.map((miner) => (
                       <tr key={miner.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button className="text-blue-600 hover:text-blue-900" title="Edit">
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button className="text-red-600 hover:text-red-900" title="Delete">
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {miner.brand}
                         </td>
@@ -225,16 +235,6 @@ export default function Miners() {
                           }`}>
                             {miner.isActive ? t('miners.isActive') : t('common.no')}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            <button className="text-blue-600 hover:text-blue-900" title="Edit">
-                              <PencilIcon className="h-4 w-4" />
-                            </button>
-                            <button className="text-red-600 hover:text-red-900" title="Delete">
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </div>
                         </td>
                       </tr>
                     ))

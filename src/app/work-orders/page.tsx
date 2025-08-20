@@ -287,6 +287,9 @@ export default function WorkOrders() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('common.actions')}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('workOrders.orderNumber')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -310,9 +313,6 @@ export default function WorkOrders() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('workOrders.estimatedCost')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('common.actions')}
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -325,6 +325,23 @@ export default function WorkOrders() {
                 ) : (
                   filteredWorkOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <Link
+                          href={`/work-orders/${order.id}`}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="View details"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </Link>
+                        <button className="text-green-600 hover:text-green-900">
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button className="text-red-600 hover:text-red-900">
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {order.orderNumber}
                     </td>
@@ -355,23 +372,6 @@ export default function WorkOrders() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       ฿{order.estimatedCost?.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/work-orders/${order.id}`}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="View details"
-                        >
-                          <EyeIcon className="h-4 w-4" />
-                        </Link>
-                        <button className="text-green-600 hover:text-green-900">
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button className="text-red-600 hover:text-red-900">
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
                     </td>
                   </tr>
                 ))

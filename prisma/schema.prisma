@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  customerRepairs    Customer[]
+  technicianRepairs  Technician[]
+  createdWorkOrders  WorkOrder[] @relation("CreatedBy")
+
+  @@map("users")
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?  @unique
+  phone       String
+  address     String?
+  company     String?
+  taxId       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  createdByUser User   @relation(fields: [createdBy], references: [id])
+
+  // Relations
+  workOrders WorkOrder[]
+
+  @@map("customers")
+}
+
+model Technician {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?  @unique
+  phone       String
+  speciality  String?
+  hourlyRate  Float?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  createdByUser User   @relation(fields: [createdBy], references: [id])
+
+  // Relations
+  workOrders WorkOrder[]
+
+  @@map("technicians")
+}
+
+model MinerModel {
+  id          String   @id @default(cuid())
+  brand       String   // Bitmain, Whatsminer, Avalon
+  model       String
+  series      String?
+  hashRate    String?
+  power       String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workOrders WorkOrder[]
+
+  @@map("miner_models")
+}
+
+model WorkOrder {
+  id            String        @id @default(cuid())
+  orderNumber   String        @unique
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  technicianId  String?
+  technician    Technician?   @relation(fields: [technicianId], references: [id])
+  minerModelId  String?
+  minerModel    MinerModel?   @relation(fields: [minerModelId], references: [id])
+  serialNumber  String?
+  issue         String
+  diagnosis     String?
+  solution      String?
+  status        WorkOrderStatus @default(PENDING)
+  priority      Priority      @default(MEDIUM)
+  estimatedCost Float?
+  actualCost    Float?
+  startDate     DateTime?
+  completedDate DateTime?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  createdBy     String
+  createdByUser User          @relation("CreatedBy", fields: [createdBy], references: [id])
+
+  @@map("work_orders")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  TECHNICIAN
+  USER
+}
+
+enum WorkOrderStatus {
+  PENDING
+  IN_PROGRESS
+  WAITING_PARTS
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}

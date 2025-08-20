@@ -68,6 +68,7 @@ export const zh = {
     completedWorkOrders: '已完成工作订单',
     totalCustomers: '客户总数',
     totalTechnicians: '技术人员总数',
+    totalWorkOrders: '工作订单总数',
     totalRevenue: '总收入',
     monthlyRevenue: '月收入',
     workOrderStatus: '工作订单状态',

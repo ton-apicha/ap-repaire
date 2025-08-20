@@ -68,6 +68,7 @@ export const en = {
     completedWorkOrders: 'Completed Work Orders',
     totalCustomers: 'Total Customers',
     totalTechnicians: 'Total Technicians',
+    totalWorkOrders: 'Total Work Orders',
     totalRevenue: 'Total Revenue',
     monthlyRevenue: 'Monthly Revenue',
     workOrderStatus: 'Work Order Status',

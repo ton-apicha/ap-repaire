@@ -68,6 +68,7 @@ export const th = {
     completedWorkOrders: 'ใบงานที่เสร็จสิ้น',
     totalCustomers: 'จำนวนลูกค้าทั้งหมด',
     totalTechnicians: 'จำนวนช่างซ่อมทั้งหมด',
+    totalWorkOrders: 'จำนวนใบงานทั้งหมด',
     totalRevenue: 'รายได้รวม',
     monthlyRevenue: 'รายได้รายเดือน',
     workOrderStatus: 'สถานะใบงาน',

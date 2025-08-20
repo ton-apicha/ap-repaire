@@ -43,16 +43,22 @@
 /* Search input styles */
 .search-input {
   @apply block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white;
-  @apply focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
   @apply placeholder:text-gray-500;
+  @apply transition-colors duration-200;
 }
 
 .search-input:focus {
   @apply text-gray-900;
+  @apply shadow-sm;
 }
 
 .search-input::placeholder {
   @apply text-gray-500;
+}
+
+.search-input:hover {
+  @apply border-gray-400;
 }
 
 /* Form label styles */
@@ -75,4 +81,35 @@
 .input-success {
   @apply border-green-300 text-green-900;
   @apply focus:ring-green-500 focus:border-green-500;
+}
+
+/* Table responsive styles */
+.table-container {
+  @apply overflow-x-auto max-w-full;
+  @apply shadow-sm border border-gray-200 rounded-lg;
+}
+
+.table-responsive {
+  @apply min-w-full divide-y divide-gray-200;
+}
+
+.table-header {
+  @apply bg-gray-50;
+}
+
+.table-header th {
+  @apply px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  @apply whitespace-nowrap;
+}
+
+.table-body {
+  @apply bg-white divide-y divide-gray-200;
+}
+
+.table-row {
+  @apply hover:bg-gray-50 transition-colors duration-150;
+}
+
+.table-cell {
+  @apply px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500;
 }

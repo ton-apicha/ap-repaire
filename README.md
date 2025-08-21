@@ -649,6 +649,16 @@ npm run create-page suppliers Suppliers /api/suppliers
 
 ---
 
+### 🔧 v1.2.0 (21 สิงหาคม 2025) - System Optimization
+
+#### ✅ การปรับปรุงที่สำคัญ
+- **Performance Optimization**: ปรับปรุงประสิทธิภาพการทำงาน
+- **Code Quality**: แก้ไข lint errors และ TypeScript issues
+- **Build System**: ปรับปรุงระบบ build และ deployment
+- **Documentation**: อัพเดทเอกสารและ README
+
+---
+
 ### 🔧 v1.1.1 (20 สิงหาคม 2025) - Actions Column Optimization
 
 #### ✅ การปรับปรุง UX

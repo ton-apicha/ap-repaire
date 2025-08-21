@@ -274,13 +274,13 @@ export default function Miners() {
 
   return (
     <PageTemplate
-      title="Miner Models"
-      description="Manage cryptocurrency miner models"
+      title={t('miners.title')}
+      description={t('miners.description')}
       showCreateButton={true}
-      createButtonText="Add Miner Model"
+      createButtonText={t('miners.addMinerModel')}
       onCreateClick={() => setShowAddModal(true)}
       itemCount={filteredAndSortedMinerModels.length}
-      itemName="miner models"
+      itemName={t('miners.itemName')}
     >
       {/* Filters */}
       <FilterSection>
@@ -288,28 +288,28 @@ export default function Miners() {
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder="Search miner models..."
+            placeholder={t('miners.searchPlaceholder')}
           />
           <FilterSelect
             value={brandFilter}
             onChange={setBrandFilter}
             options={[
-              { value: 'all', label: 'All Brands' },
-              { value: 'bitmain', label: 'Bitmain' },
-              { value: 'whatsminer', label: 'Whatsminer' },
-              { value: 'avalon', label: 'Avalon' }
+              { value: 'all', label: t('miners.allBrands') },
+              { value: 'bitmain', label: t('miners.bitmain') },
+              { value: 'whatsminer', label: t('miners.whatsminer') },
+              { value: 'avalon', label: t('miners.avalon') }
             ]}
-            placeholder="Filter by brand"
+            placeholder={t('miners.filterByBrand')}
           />
           <FilterSelect
             value={statusFilter}
             onChange={setStatusFilter}
             options={[
-              { value: 'all', label: 'All Status' },
-              { value: 'active', label: 'Active' },
-              { value: 'inactive', label: 'Inactive' }
+              { value: 'all', label: t('miners.allStatus') },
+              { value: 'active', label: t('miners.active') },
+              { value: 'inactive', label: t('miners.inactive') }
             ]}
-            placeholder="Filter by status"
+            placeholder={t('miners.filterByStatus')}
           />
         </div>
       </FilterSection>
@@ -325,7 +325,7 @@ export default function Miners() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Brand
+                {t('miners.brand')}
               </SortableHeader>
               <SortableHeader
                 field="model"
@@ -333,7 +333,7 @@ export default function Miners() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Model
+                {t('miners.model')}
               </SortableHeader>
               <SortableHeader
                 field="series"
@@ -341,7 +341,7 @@ export default function Miners() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Series
+                {t('miners.series')}
               </SortableHeader>
               <SortableHeader
                 field="hashRate"
@@ -349,7 +349,7 @@ export default function Miners() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Hash Rate
+                {t('miners.hashRate')}
               </SortableHeader>
               <SortableHeader
                 field="power"
@@ -357,10 +357,10 @@ export default function Miners() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Power
+                {t('miners.power')}
               </SortableHeader>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Description
+                {t('miners.minerDescription')}
               </th>
               <SortableHeader
                 field="isActive"

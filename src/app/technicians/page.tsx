@@ -300,13 +300,13 @@ export default function Technicians() {
 
   return (
     <PageTemplate
-      title="Technicians"
-      description="Manage technician information"
+      title={t('technicians.title')}
+      description={t('technicians.description')}
       showCreateButton={true}
-      createButtonText="Add Technician"
+      createButtonText={t('technicians.addTechnician')}
       onCreateClick={() => setShowAddModal(true)}
       itemCount={filteredAndSortedTechnicians.length}
-      itemName="technicians"
+      itemName={t('technicians.itemName')}
     >
       {/* Filters */}
       <FilterSection>
@@ -314,17 +314,17 @@ export default function Technicians() {
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder="Search technicians..."
+            placeholder={t('technicians.searchPlaceholder')}
           />
           <FilterSelect
             value={statusFilter}
             onChange={setStatusFilter}
             options={[
-              { value: 'all', label: 'All Status' },
-              { value: 'active', label: 'Active' },
-              { value: 'inactive', label: 'Inactive' }
+              { value: 'all', label: t('technicians.allStatus') },
+              { value: 'active', label: t('technicians.active') },
+              { value: 'inactive', label: t('technicians.inactive') }
             ]}
-            placeholder="Filter by status"
+            placeholder={t('technicians.filterByStatus')}
           />
         </div>
       </FilterSection>
@@ -340,7 +340,7 @@ export default function Technicians() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Name
+                {t('common.name')}
               </SortableHeader>
               <SortableHeader
                 field="email"
@@ -348,7 +348,7 @@ export default function Technicians() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Email
+                {t('common.email')}
               </SortableHeader>
               <SortableHeader
                 field="phone"
@@ -356,7 +356,7 @@ export default function Technicians() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Phone
+                {t('common.phone')}
               </SortableHeader>
               <SortableHeader
                 field="speciality"
@@ -364,7 +364,7 @@ export default function Technicians() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Speciality
+                {t('technicians.speciality')}
               </SortableHeader>
               <SortableHeader
                 field="hourlyRate"
@@ -372,7 +372,7 @@ export default function Technicians() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Hourly Rate
+                {t('technicians.hourlyRate')}
               </SortableHeader>
               <SortableHeader
                 field="isActive"
@@ -380,7 +380,7 @@ export default function Technicians() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Status
+                {t('common.status')}
               </SortableHeader>
               <SortableHeader
                 field="workOrders"
@@ -388,10 +388,10 @@ export default function Technicians() {
                 sortDirection={sortDirection}
                 onSort={handleSort}
               >
-                Current Work Orders
+                {t('technicians.currentWorkOrders')}
               </SortableHeader>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
+                {t('common.actions')}
               </th>
             </tr>
           </thead>

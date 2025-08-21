@@ -255,13 +255,13 @@ export default function WorkOrders() {
 
   return (
     <PageTemplate
-      title="Work Orders"
-      description="Manage repair work orders"
+      title={t('workOrders.title')}
+      description={t('workOrders.description')}
       showCreateButton={true}
-      createButtonText="Create Work Order"
+      createButtonText={t('workOrders.createWorkOrder')}
       onCreateClick={() => setShowAddModal(true)}
       itemCount={filteredAndSortedWorkOrders.length}
-      itemName="work orders"
+      itemName={t('workOrders.itemName')}
     >
       {/* Filters */}
       <FilterSection>
@@ -269,32 +269,32 @@ export default function WorkOrders() {
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder="Search work orders..."
+            placeholder={t('workOrders.searchPlaceholder')}
           />
           <FilterSelect
             value={statusFilter}
             onChange={setStatusFilter}
             options={[
-              { value: 'all', label: 'All Status' },
-              { value: 'PENDING', label: 'Pending' },
-              { value: 'IN_PROGRESS', label: 'In Progress' },
-              { value: 'WAITING_PARTS', label: 'Waiting Parts' },
-              { value: 'COMPLETED', label: 'Completed' },
-              { value: 'CANCELLED', label: 'Cancelled' }
+              { value: 'all', label: t('workOrders.allStatus') },
+              { value: 'PENDING', label: t('workOrders.pending') },
+              { value: 'IN_PROGRESS', label: t('workOrders.inProgress') },
+              { value: 'WAITING_PARTS', label: t('workOrders.waitingParts') },
+              { value: 'COMPLETED', label: t('workOrders.completed') },
+              { value: 'CANCELLED', label: t('workOrders.cancelled') }
             ]}
-            placeholder="Filter by status"
+            placeholder={t('workOrders.filterByStatus')}
           />
           <FilterSelect
             value={priorityFilter}
             onChange={setPriorityFilter}
             options={[
-              { value: 'all', label: 'All Priority' },
-              { value: 'LOW', label: 'Low' },
-              { value: 'MEDIUM', label: 'Medium' },
-              { value: 'HIGH', label: 'High' },
-              { value: 'URGENT', label: 'Urgent' }
+              { value: 'all', label: t('workOrders.allPriority') },
+              { value: 'LOW', label: t('workOrders.low') },
+              { value: 'MEDIUM', label: t('workOrders.medium') },
+              { value: 'HIGH', label: t('workOrders.high') },
+              { value: 'URGENT', label: t('workOrders.urgent') }
             ]}
-            placeholder="Filter by priority"
+            placeholder={t('workOrders.filterByPriority')}
           />
         </div>
       </FilterSection>
@@ -423,10 +423,10 @@ export default function WorkOrders() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <ActionButtons>
                       <ActionButton onClick={() => handleView(workOrder)}>
-                        View
+                        {t('common.view')}
                       </ActionButton>
                       <ActionButton onClick={() => handleEdit(workOrder)}>
-                        Edit
+                        {t('common.edit')}
                       </ActionButton>
                     </ActionButtons>
                   </td>
@@ -443,7 +443,7 @@ export default function WorkOrders() {
           <div className="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Create New Work Order</h3>
+                <h3 className="text-lg font-medium text-gray-900">{t('workOrders.createNewWorkOrder')}</h3>
                 <button
                   onClick={() => setShowAddModal(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -456,21 +456,21 @@ export default function WorkOrders() {
               
               <div className="mb-4 p-4 bg-blue-50 rounded-md">
                 <p className="text-sm text-blue-800">
-                  <strong>Generated Order Number:</strong> {generatedOrderNumber}
+                  <strong>{t('workOrders.generatedOrderNumber')}:</strong> {generatedOrderNumber}
                 </p>
               </div>
               
               <form className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Customer *</label>
+                    <label className="block text-sm font-medium text-gray-700">{t('workOrders.customer')} *</label>
                     <select
                       value={formData.customerId}
                       onChange={(e) => setFormData({...formData, customerId: e.target.value})}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       required
                     >
-                      <option value="">Select a customer</option>
+                      <option value="">{t('workOrders.selectCustomer')}</option>
                       {customers.map((customer) => (
                         <option key={customer.id} value={customer.id}>
                           {customer.name}
@@ -480,14 +480,14 @@ export default function WorkOrders() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Technician *</label>
+                    <label className="block text-sm font-medium text-gray-700">{t('workOrders.technician')} *</label>
                     <select
                       value={formData.technicianId}
                       onChange={(e) => setFormData({...formData, technicianId: e.target.value})}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       required
                     >
-                      <option value="">Select a technician</option>
+                      <option value="">{t('workOrders.selectTechnician')}</option>
                       {technicians.map((technician) => (
                         <option key={technician.id} value={technician.id}>
                           {technician.name}
@@ -499,14 +499,14 @@ export default function WorkOrders() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Miner Model *</label>
+                    <label className="block text-sm font-medium text-gray-700">{t('workOrders.minerModel')} *</label>
                     <select
                       value={formData.minerModelId}
                       onChange={(e) => setFormData({...formData, minerModelId: e.target.value})}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       required
                     >
-                      <option value="">Select a miner model</option>
+                      <option value="">{t('workOrders.selectMinerModel')}</option>
                       {minerModels.map((model) => (
                         <option key={model.id} value={model.id}>
                           {model.brand} - {model.model}
@@ -516,46 +516,46 @@ export default function WorkOrders() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Serial Number</label>
+                    <label className="block text-sm font-medium text-gray-700">{t('workOrders.serialNumber')}</label>
                     <input
                       type="text"
                       value={formData.serialNumber}
                       onChange={(e) => setFormData({...formData, serialNumber: e.target.value})}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      placeholder="Enter serial number"
+                      placeholder={t('workOrders.enterSerialNumber')}
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Issue Description *</label>
+                  <label className="block text-sm font-medium text-gray-700">{t('workOrders.issueDescription')} *</label>
                   <textarea
                     value={formData.issue}
                     onChange={(e) => setFormData({...formData, issue: e.target.value})}
                     rows={3}
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="Describe the issue..."
+                    placeholder={t('workOrders.describeIssue')}
                     required
                   />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Priority</label>
+                    <label className="block text-sm font-medium text-gray-700">{t('workOrders.priority')}</label>
                     <select
                       value={formData.priority}
                       onChange={(e) => setFormData({...formData, priority: e.target.value})}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
-                      <option value="LOW">Low</option>
-                      <option value="MEDIUM">Medium</option>
-                      <option value="HIGH">High</option>
-                      <option value="URGENT">Urgent</option>
+                      <option value="LOW">{t('workOrders.low')}</option>
+                      <option value="MEDIUM">{t('workOrders.medium')}</option>
+                      <option value="HIGH">{t('workOrders.high')}</option>
+                      <option value="URGENT">{t('workOrders.urgent')}</option>
                     </select>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Estimated Cost</label>
+                    <label className="block text-sm font-medium text-gray-700">{t('workOrders.estimatedCost')}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -573,13 +573,13 @@ export default function WorkOrders() {
                     onClick={() => setShowAddModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
                     className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    Create Work Order
+                    {t('workOrders.createWorkOrder')}
                   </button>
                 </div>
               </form>

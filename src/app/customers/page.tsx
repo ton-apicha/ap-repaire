@@ -278,13 +278,13 @@ export default function Customers() {
 
   return (
     <PageTemplate
-      title="Customers"
-      description="Manage customer information"
+      title={t('customers.title')}
+      description={t('customers.description')}
       showCreateButton={true}
-      createButtonText="Add Customer"
+      createButtonText={t('customers.addCustomer')}
       onCreateClick={() => setShowAddModal(true)}
       itemCount={filteredAndSortedCustomers.length}
-      itemName="customers"
+      itemName={t('customers.itemName')}
     >
       {/* Filters */}
       <FilterSection>
@@ -292,7 +292,7 @@ export default function Customers() {
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder="Search customers..."
+            placeholder={t('customers.searchPlaceholder')}
           />
         </div>
       </FilterSection>

@@ -62,7 +62,9 @@ export const zh = {
     language: "语言",
     manage: "管理",
     tryAgain: "重试",
-    clearFilters: "清除筛选"
+    clearFilters: "清除筛选",
+    creating: "创建中...",
+    updating: "更新中..."
   },
   dashboard: {
     title: "仪表板",
@@ -258,7 +260,22 @@ export const zh = {
     digitalWallet: "数字钱包",
     otherPayment: "其他",
     searchInvoices: "搜索发票...",
-    filterByStatus: "按状态筛选"
+    filterByStatus: "按状态筛选",
+    addItem: "添加项目",
+    itemDescription: "项目描述",
+    taxRate: "税率",
+    tax: "税",
+    discount: "折扣",
+    total: "总计",
+    createSuccess: "发票创建成功",
+    updateSuccess: "发票更新成功",
+    deleteSuccess: "发票删除成功",
+    confirmDelete: "您确定要删除这张发票吗?",
+    updateInvoice: "更新发票",
+    selectCustomer: "选择客户",
+    selectWorkOrder: "选择工单",
+    creating: "创建中...",
+    updating: "更新中..."
   },
   payment: {
     title: "付款",

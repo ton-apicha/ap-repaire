@@ -6,6 +6,8 @@
  * Purpose: ช่วยตรวจพบปัญหา frontend ได้ทันที
  */
 
+import React, { useState, useEffect } from 'react';
+
 export interface ComponentHealthStatus {
   componentName: string;
   status: 'healthy' | 'warning' | 'error';
@@ -292,7 +294,7 @@ export class FrontendHealthChecker {
     const inputs = document.querySelectorAll('input:not([aria-label]):not([aria-labelledby])');
     const unlabeledInputs = Array.from(inputs).filter(input => {
       const label = document.querySelector(`label[for="${input.id}"]`);
-      return !label && input.type !== 'hidden';
+      return !label && (input as HTMLInputElement).type !== 'hidden';
     });
 
     if (unlabeledInputs.length > 0) {
@@ -445,10 +447,10 @@ export class FrontendHealthChecker {
 
 // React Hook for easy integration
 export function useComponentHealth(componentName: string) {
-  const [healthStatus, setHealthStatus] = React.useState<ComponentHealthStatus | null>(null);
+  const [healthStatus, setHealthStatus] = useState<ComponentHealthStatus | null>(null);
   const healthChecker = FrontendHealthChecker.getInstance();
 
-  React.useEffect(() => {
+  useEffect(() => {
     healthChecker.registerComponent(componentName);
     
     const updateStatus = (statuses: ComponentHealthStatus[]) => {
@@ -466,7 +468,7 @@ export function useComponentHealth(componentName: string) {
       healthChecker.removeObserver(updateStatus);
       healthChecker.unregisterComponent(componentName);
     };
-  }, [componentName]);
+  }, [componentName, healthChecker]);
 
   return {
     healthStatus,

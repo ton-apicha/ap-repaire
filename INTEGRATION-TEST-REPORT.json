@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-08-21T16:18:06.562Z",
-  "duration": "6.593s",
+  "timestamp": "2025-08-21T20:43:56.579Z",
+  "duration": "5.305s",
   "summary": {
     "total": 24,
     "passed": 12,
-    "warnings": 1,
-    "failed": 11,
+    "warnings": 0,
+    "failed": 12,
     "successRate": "50%"
   },
   "results": {
@@ -54,15 +54,15 @@
       },
       {
         "test": "Performance Customers API",
-        "message": "Good response time: 243ms"
+        "message": "Good response time: 233ms"
       },
       {
         "test": "Performance Invoices API",
-        "message": "Good response time: 244ms"
+        "message": "Good response time: 241ms"
       },
       {
         "test": "Performance Payments API",
-        "message": "Good response time: 261ms"
+        "message": "Good response time: 249ms"
       }
     ],
     "failed": [
@@ -78,23 +78,28 @@
       },
       {
         "test": "Frontend Customers",
-        "error": "Page shows Error state",
-        "solution": "Check API responses and error handling"
-      },
-      {
-        "test": "Frontend Work Orders",
-        "error": "Page shows Error state",
-        "solution": "Check API responses and error handling"
-      },
-      {
-        "test": "Frontend Payments",
         "error": "Expected content not found",
         "solution": "Check page component and routing"
       },
       {
-        "test": "Frontend Miners",
+        "test": "Frontend Work Orders",
+        "error": "Expected content not found",
+        "solution": "Check page component and routing"
+      },
+      {
+        "test": "Frontend Invoices",
+        "error": "Expected content not found",
+        "solution": "Check page component and routing"
+      },
+      {
+        "test": "Frontend Payments",
         "error": "Page shows Error state",
         "solution": "Check API responses and error handling"
+      },
+      {
+        "test": "Frontend Miners",
+        "error": "Expected content not found",
+        "solution": "Check page component and routing"
       },
       {
         "test": "Customers Page Data Loading",
@@ -103,13 +108,13 @@
       },
       {
         "test": "Invoices Page Data Loading",
-        "error": "API has data but frontend shows Loading",
-        "solution": "Check data fetching logic in frontend component"
+        "error": "API has data but frontend shows Error",
+        "solution": "Check error handling and data parsing in frontend"
       },
       {
         "test": "Payments Page Data Loading",
-        "error": "API has data but frontend shows Loading",
-        "solution": "Check data fetching logic in frontend component"
+        "error": "API has data but frontend shows Error",
+        "solution": "Check error handling and data parsing in frontend"
       },
       {
         "test": "Error Handling Non-existent API endpoint",
@@ -122,14 +127,8 @@
         "solution": "Implement proper error handling"
       }
     ],
-    "warnings": [
-      {
-        "test": "Frontend Invoices",
-        "message": "Page shows Loading state - may indicate data fetching issues",
-        "solution": "Check API connectivity and data fetching logic"
-      }
-    ],
+    "warnings": [],
     "totalTests": 24,
-    "duration": 6.593
+    "duration": 5.305
   }
 }

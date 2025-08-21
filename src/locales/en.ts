@@ -62,7 +62,9 @@ export const en = {
     language: "Language",
     manage: "Manage",
     tryAgain: "Try Again",
-    clearFilters: "Clear Filters"
+    clearFilters: "Clear Filters",
+    creating: "Creating...",
+    updating: "Updating..."
   },
   dashboard: {
     title: "Dashboard",
@@ -258,7 +260,22 @@ export const en = {
     digitalWallet: "Digital Wallet",
     otherPayment: "Other",
     searchInvoices: "Search invoices...",
-    filterByStatus: "Filter by status"
+    filterByStatus: "Filter by status",
+    addItem: "Add Item",
+    itemDescription: "Item description",
+    taxRate: "Tax Rate",
+    tax: "Tax",
+    discount: "Discount",
+    total: "Total",
+    createSuccess: "Invoice created successfully",
+    updateSuccess: "Invoice updated successfully",
+    deleteSuccess: "Invoice deleted successfully",
+    confirmDelete: "Are you sure you want to delete this invoice?",
+    updateInvoice: "Update Invoice",
+    selectCustomer: "Select Customer",
+    selectWorkOrder: "Select Work Order",
+    creating: "Creating...",
+    updating: "Updating..."
   },
   payment: {
     title: "Payments",

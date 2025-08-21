@@ -95,9 +95,9 @@ export class ErrorReportingSystem {
           sessionId: this.sessionId
         },
         metadata: {
-          file: event.filename,
-          line: event.lineno,
-          column: event.colno
+          apiEndpoint: event.filename,
+          responseStatus: event.lineno,
+          requestData: event.colno
         },
         tags: ['runtime-error', 'javascript']
       });
@@ -116,8 +116,9 @@ export class ErrorReportingSystem {
           sessionId: this.sessionId
         },
         metadata: {
-          promiseRejection: true,
-          reason: event.reason
+          apiEndpoint: 'promise-rejection',
+          responseStatus: 1,
+          requestData: event.reason
         },
         tags: ['promise-rejection', 'javascript']
       });
@@ -134,8 +135,9 @@ export class ErrorReportingSystem {
         // Log slow API calls
         if (endTime - startTime > 2000) {
           this.logWarning('Performance', `Slow API call: ${args[0]}`, {
-            duration: endTime - startTime,
-            endpoint: args[0]
+            apiEndpoint: args[0] as string,
+            responseStatus: 0,
+            requestData: endTime - startTime
           });
         }
 
@@ -173,12 +175,12 @@ export class ErrorReportingSystem {
             userAgent: navigator.userAgent,
             sessionId: this.sessionId
           },
-          metadata: {
-            apiEndpoint: args[0] as string,
-            requestData: args[1],
-            duration: endTime - startTime,
-            networkStatus: navigator.onLine ? 'online' : 'offline'
-          },
+                      metadata: {
+              apiEndpoint: args[0] as string,
+              requestData: args[1],
+              responseData: endTime - startTime,
+              networkStatus: navigator.onLine ? 'online' : 'offline'
+            },
           tags: ['network-error', 'fetch-failed']
         });
         
@@ -318,7 +320,7 @@ export class ErrorReportingSystem {
       },
       metadata: {
         userAction: action,
-        actionContext: context
+        apiEndpoint: context
       },
       tags: ['user-action', action.toLowerCase()]
     });

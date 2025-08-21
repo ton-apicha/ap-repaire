@@ -62,7 +62,9 @@ export const th = {
     language: "ภาษา",
     manage: "จัดการ",
     tryAgain: "ลองอีกครั้ง",
-    clearFilters: "ล้างตัวกรอง"
+    clearFilters: "ล้างตัวกรอง",
+    creating: "กำลังสร้าง...",
+    updating: "กำลังอัพเดท..."
   },
   dashboard: {
     title: "แดชบอร์ด",
@@ -258,7 +260,22 @@ export const th = {
     digitalWallet: "กระเป๋าเงินดิจิทัล",
     otherPayment: "อื่นๆ",
     searchInvoices: "ค้นหาใบแจ้งหนี้...",
-    filterByStatus: "กรองตามสถานะ"
+    filterByStatus: "กรองตามสถานะ",
+    addItem: "เพิ่มรายการ",
+    itemDescription: "รายละเอียดรายการ",
+    taxRate: "อัตราภาษี",
+    tax: "ภาษี",
+    discount: "ส่วนลด",
+    total: "รวม",
+    createSuccess: "สร้างใบแจ้งหนี้สำเร็จ",
+    updateSuccess: "อัพเดทใบแจ้งหนี้สำเร็จ",
+    deleteSuccess: "ลบใบแจ้งหนี้สำเร็จ",
+    confirmDelete: "คุณแน่ใจหรือไม่ที่จะลบใบแจ้งหนี้นี้?",
+    updateInvoice: "อัพเดทใบแจ้งหนี้",
+    selectCustomer: "เลือกลูกค้า",
+    selectWorkOrder: "เลือกใบสั่งงาน",
+    creating: "กำลังสร้าง...",
+    updating: "กำลังอัพเดท..."
   },
   payment: {
     title: "การชำระเงิน",

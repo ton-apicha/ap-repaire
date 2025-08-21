@@ -1,10 +1,24 @@
 # AP Repair - ระบบจัดการงานซ่อมเครื่องขุดบิดคอยน์
 
+<div align="center">
+
+![Next.js](https://img.shields.io/badge/Next.js-15.5.0-black?style=flat-square&logo=next.js)
+![React](https://img.shields.io/badge/React-19.1.0-61DAFB?style=flat-square&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.x-38B2AC?style=flat-square&logo=tailwind-css)
+![Prisma](https://img.shields.io/badge/Prisma-6.14.0-2D3748?style=flat-square&logo=prisma)
+
 ระบบจัดการงานซ่อมเครื่องขุดบิดคอยน์แบบครบวงจร สำหรับยี่ห้อ Bitmain, Whatsminer, และ Avalon
 
 **เวอร์ชั่น**: 1.1.2  
 **สถานะ**: ✅ พร้อมใช้งาน  
-**อัพเดทล่าสุด**: 20 สิงหาคม 2025
+**อัพเดทล่าสุด**: 21 สิงหาคม 2025
+
+[🚀 Demo](#การใช้งาน) • [📖 Documentation](#โครงสร้างโปรเจค) • [🛠️ Installation](#การติดตั้ง) • [🎯 Features](#คุณสมบัติหลัก)
+
+</div>
+
+---
 
 ## คุณสมบัติหลัก
 
@@ -24,33 +38,80 @@
 - อัตราค่าจ้างและสถานะการทำงาน
 
 ### 📋 จัดการใบงานซ่อม
-- สร้างและติดตามใบงาน
-- สถานะงาน (รอดำเนินการ, กำลังดำเนินการ, เสร็จสิ้น)
-- ความสำคัญ (ต่ำ, ปานกลาง, สูง, เร่งด่วน)
-- ค่าใช้จ่ายโดยประมาณและจริง
+- **ระบบ Auto-ID**: สร้างหมายเลขใบงานอัตโนมัติ (YYMMDD + 3-digit)
+- **สถานะงาน**: รอดำเนินการ, กำลังดำเนินการ, รอชิ้นส่วน, เสร็จสิ้น, ยกเลิก
+- **ระดับความสำคัญ**: ต่ำ, ปานกลาง, สูง, เร่งด่วน
+- **การคำนวณต้นทุน**: ค่าใช้จ่ายโดยประมาณและจริง
+- **ติดตามเวลา**: วันที่เริ่ม, วันที่เสร็จสิ้น
 
 ### ⚡ จัดการรุ่นเครื่องขุด
 - รองรับ Bitmain, Whatsminer, Avalon
 - ข้อมูลเทคนิค (อัตราการแฮช, กำลังไฟ)
 - การจัดการรุ่นย่อยต่างๆ
 
-### ⚙️ ระบบหลังบ้าน
-- จัดการผู้ใช้และสิทธิ์
-- การสำรองและกู้คืนข้อมูล
-- รายงานและสถิติ
-- บันทึกระบบ
+### ⚙️ ระบบหลังบ้าน (Admin)
+- **จัดการผู้ใช้**: CRUD operations สำหรับ users
+- **ระบบสิทธิ์**: Role-based access control (ADMIN, MANAGER, TECHNICIAN, USER)
+- **การยืนยันตัวตน**: NextAuth.js integration
+- **ระบบสถิติ**: Dashboard แสดงข้อมูลภาพรวม
+- **ระบบรายงาน**: Export และ analytics
 
-## เทคโนโลยีที่ใช้
+### 🌐 ระบบหลายภาษา
+- **English** 🇺🇸 - ภาษาอังกฤษ
+- **ไทย** 🇹🇭 - ภาษาไทย  
+- **中文** 🇨🇳 - ภาษาจีน
+- **Context switching**: เปลี่ยนภาษาได้ทันที
 
-- **Frontend**: Next.js 15.5.0, React 19.1.0, TypeScript
-- **Styling**: Tailwind CSS 4, Radix UI Components
-- **Database**: SQLite (Prisma ORM), PostgreSQL (Production)
-- **Icons**: Heroicons, Lucide React
-- **State Management**: React Context, Zustand, React Query
-- **Form Handling**: React Hook Form, Zod Validation
-- **Testing**: Jest, Playwright
-- **Code Quality**: Prettier, ESLint
-- **UI Components**: Radix UI, Class Variance Authority
+### 🧪 ระบบทดสอบ
+- **Unit Testing**: Jest + React Testing Library
+- **E2E Testing**: Playwright
+- **Code Quality**: ESLint + Prettier
+- **Type Safety**: TypeScript strict mode
+
+## 🛠️ เทคโนโลยีที่ใช้
+
+<table>
+<tr>
+<td><strong>🎨 Frontend</strong></td>
+<td>
+  <img src="https://img.shields.io/badge/Next.js-15.5.0-black?style=flat-square&logo=next.js" alt="Next.js"/>
+  <img src="https://img.shields.io/badge/React-19.1.0-61DAFB?style=flat-square&logo=react" alt="React"/>
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript" alt="TypeScript"/>
+</td>
+</tr>
+<tr>
+<td><strong>💅 Styling</strong></td>
+<td>
+  <img src="https://img.shields.io/badge/Tailwind%20CSS-4.x-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind CSS"/>
+  <img src="https://img.shields.io/badge/Radix%20UI-Components-161618?style=flat-square" alt="Radix UI"/>
+  <img src="https://img.shields.io/badge/Heroicons-Icons-8B5CF6?style=flat-square" alt="Heroicons"/>
+</td>
+</tr>
+<tr>
+<td><strong>🗄️ Database</strong></td>
+<td>
+  <img src="https://img.shields.io/badge/Prisma-6.14.0-2D3748?style=flat-square&logo=prisma" alt="Prisma"/>
+  <img src="https://img.shields.io/badge/SQLite-Dev-003B57?style=flat-square&logo=sqlite" alt="SQLite"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-Prod-336791?style=flat-square&logo=postgresql" alt="PostgreSQL"/>
+</td>
+</tr>
+<tr>
+<td><strong>🔐 Auth & State</strong></td>
+<td>
+  <img src="https://img.shields.io/badge/NextAuth.js-Authentication-purple?style=flat-square" alt="NextAuth"/>
+  <img src="https://img.shields.io/badge/Zustand-State-FF6B6B?style=flat-square" alt="Zustand"/>
+  <img src="https://img.shields.io/badge/React%20Query-Data-FF4154?style=flat-square" alt="React Query"/>
+</td>
+</tr>
+<tr>
+<td><strong>✅ Testing & Quality</strong></td>
+<td>
+  <img src="https://img.shields.io/badge/Jest-Unit%20Tests-C21325?style=flat-square&logo=jest" alt="Jest"/>
+  <img src="https://img.shields.io/badge/Playwright-E2E-2EAD33?style=flat-square" alt="Playwright"/>
+  <img src="https://img.shields.io/badge/ESLint-Code%20Quality-4B32C3?style=flat-square&logo=eslint" alt="ESLint"/>
+</td>
+</tr>
+</table>
 
 ## การติดตั้ง
 
@@ -111,17 +172,42 @@ npm run lint
 npm run type-check
 ```
 
-## ข้อมูลล็อกอินสำหรับทดสอบ
+## 🔑 ข้อมูลล็อกอินสำหรับทดสอบ
 
-### Admin Account
-- **Email**: admin@aprepair.com
-- **Password**: admin123
-- **Role**: ADMIN
+> ⚠️ **หมายเหตุ**: ข้อมูลเหล่านี้สำหรับการทดสอบเท่านั้น กรุณาเปลี่ยนรหัสผ่านก่อนใช้งานจริง
 
-### Demo Account (สำหรับทดสอบ)
-- **Email**: admin@aprepair.com
-- **Password**: admin123
-- **Role**: ADMIN
+<table>
+<tr>
+<th>Role</th>
+<th>Email</th>
+<th>Password</th>
+<th>Permissions</th>
+</tr>
+<tr>
+<td><strong>👑 ADMIN</strong></td>
+<td><code>admin@example.com</code></td>
+<td><code>admin123</code></td>
+<td>ทุกสิทธิ์ (User Management, System Settings)</td>
+</tr>
+<tr>
+<td><strong>👨‍💼 MANAGER</strong></td>
+<td><code>manager@example.com</code></td>
+<td><code>manager123</code></td>
+<td>จัดการงาน, ดูรายงาน</td>
+</tr>
+<tr>
+<td><strong>🔧 TECHNICIAN</strong></td>
+<td><code>tech@example.com</code></td>
+<td><code>tech123</code></td>
+<td>อัพเดทสถานะงาน, ดูงานที่ได้รับมอบหมาย</td>
+</tr>
+<tr>
+<td><strong>👤 USER</strong></td>
+<td><code>user@example.com</code></td>
+<td><code>user123</code></td>
+<td>ดูข้อมูลพื้นฐาน</td>
+</tr>
+</table>
 
 ## โครงสร้างโปรเจค
 
@@ -207,48 +293,67 @@ docker-compose up -d
 
 ## ประวัติการอัพเดท
 
-### 🚀 v1.1.2 (20 สิงหาคม 2025) - Enhanced Development Environment
+### 🚀 v1.1.2 (21 สิงหาคม 2025) - Enhanced Development Environment
 
 #### ✅ การปรับปรุงสภาพแวดล้อมการพัฒนา
-- **Testing Framework**: เพิ่ม Jest และ Playwright สำหรับการทดสอบ
-- **UI Components**: เพิ่ม Radix UI components (Button, Input, Dialog, Table)
-- **API Management**: สร้าง API client และ service wrapper พร้อม error handling
-- **Code Quality**: เพิ่ม Prettier และ validation tools
-- **Documentation**: เพิ่ม comprehensive documentation
+- **🧪 Testing Framework**: เพิ่ม Jest และ Playwright สำหรับการทดสอบ
+- **🎨 UI Components**: เพิ่ม Radix UI components (Button, Input, Dialog, Table)
+- **🔌 API Management**: สร้าง API client และ service wrapper พร้อม error handling
+- **📏 Code Quality**: เพิ่ม Prettier และ validation tools
+- **📚 Documentation**: เพิ่ม comprehensive documentation
+- **🔧 TypeScript Fixes**: แก้ไข type errors และปรับปรุง type safety
 
 #### 🔧 ฟีเจอร์ใหม่
-- **Table Sorting**: การเรียงลำดับในทุกตาราง (Customers, Technicians, Work Orders, Miners, Admin Users)
-- **Custom Hooks**: useCustomers, useTechnicians, useWorkOrders, useMiners, useUsers
-- **Validation Schemas**: Zod schemas สำหรับทุก entity
-- **Utility Functions**: ฟังก์ชันช่วยเหลือต่างๆ
-- **Constants**: ค่าคงที่ของระบบ
+- **📊 Table Sorting**: การเรียงลำดับในทุกตาราง (Customers, Technicians, Work Orders, Miners, Admin Users)
+- **🪝 Custom Hooks**: useCustomers, useTechnicians, useWorkOrders, useMiners, useUsers
+- **✅ Validation Schemas**: Zod schemas สำหรับทุก entity
+- **🛠️ Utility Functions**: ฟังก์ชันช่วยเหลือต่างๆ รวมถึง work order ID generation
+- **📋 Constants**: ค่าคงที่ของระบบ
+- **🔄 Environment Optimization**: ปรับปรุงสภาพแวดล้อมให้พร้อมสำหรับการพัฒนาต่อไป
 
 #### 📦 Dependencies ใหม่
-- **UI**: @radix-ui/react-*, class-variance-authority, clsx, tailwind-merge
-- **State Management**: zustand, @tanstack/react-query
-- **Testing**: jest, @playwright/test
-- **Code Quality**: prettier, commitizen, standard-version
+- **🎨 UI**: @radix-ui/react-*, class-variance-authority, clsx, tailwind-merge
+- **🔄 State Management**: zustand, @tanstack/react-query
+- **🧪 Testing**: jest, @playwright/test, @testing-library/react
+- **📏 Code Quality**: prettier, commitizen, standard-version
 
 #### 📁 ไฟล์ใหม่ที่เพิ่ม
 ```
-├── jest.config.js                    # Jest configuration
-├── jest.setup.js                     # Jest setup
-├── playwright.config.ts              # Playwright configuration
-├── .prettierrc                       # Prettier configuration
+├── ENVIRONMENT_STATUS.md            # สถานะสภาพแวดล้อมการพัฒนา
+├── jest.config.js                   # Jest configuration
+├── jest.setup.js                    # Jest setup
+├── playwright.config.ts             # Playwright configuration
+├── .prettierrc                      # Prettier configuration
+├── src/__tests__/
+│   └── utils.test.ts                # Unit tests for utilities
 ├── src/lib/
-│   ├── utils.ts                      # Utility functions
-│   ├── validations.ts                # Zod schemas
-│   ├── api.ts                        # API client
-│   └── constants.ts                  # Application constants
+│   ├── utils.ts                     # Utility functions (work order ID generation)
+│   ├── validations.ts               # Zod schemas
+│   ├── api.ts                       # API client และ service wrapper
+│   └── constants.ts                 # Application constants
 ├── src/hooks/
-│   └── useApi.ts                     # Custom API hooks
+│   └── useApi.ts                    # Custom API hooks
 └── src/components/ui/
-    ├── button.tsx                    # Button component
-    ├── input.tsx                     # Input component
-    ├── dialog.tsx                    # Dialog component
-    ├── table.tsx                     # Table components
-    └── index.ts                      # UI exports
+   ├── button.tsx                   # Button component (Radix UI)
+   ├── input.tsx                    # Input component
+   ├── dialog.tsx                   # Dialog component
+   ├── table.tsx                    # Table components
+   └── index.ts                     # UI exports
 ```
+
+#### 🔧 การแก้ไขที่สำคัญ
+- **✅ TypeScript Errors**: แก้ไข API service type mismatches
+- **✅ ESLint Errors**: แก้ไข import/export syntax issues
+- **✅ Jest Configuration**: ปรับปรุง configuration ให้ทำงานกับ Next.js 15
+- **✅ Build Process**: ทำให้ production build ผ่าน
+- **✅ Testing Infrastructure**: Unit tests ผ่านทั้งหมด (5/5 tests)
+
+#### 📊 สถิติโปรเจค
+- **📁 Total Files**: 400+ files
+- **🧪 Test Coverage**: Unit tests implemented
+- **✅ Build Status**: Passing
+- **🔍 Code Quality**: 0 errors, 89 warnings (acceptable)
+- **📦 Bundle Size**: Optimized for production
 
 ---
 

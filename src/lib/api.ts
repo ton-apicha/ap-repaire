@@ -95,257 +95,244 @@ export const apiClient = new ApiClient(API_BASE_URL)
 
 // API wrapper with error handling and toast notifications
 export class ApiService {
-  static async request<T>(
-    requestFn: () => Promise<ApiResponse<T>>,
-    options: {
-      showSuccess?: boolean
-      showError?: boolean
-      successMessage?: string
-      errorMessage?: string
-    } = {}
-  ): Promise<T | null> {
-    const {
-      showSuccess = true,
-      showError = true,
-      successMessage = 'Operation completed successfully',
-      errorMessage = 'An error occurred',
-    } = options
-
+  // Customers API
+  static async getCustomers(): Promise<ApiResponse<any>> {
     try {
-      const response = await requestFn()
-      
-      if (response.success && showSuccess) {
-        toast.success(successMessage)
-      }
-      
-      return response.data || null
+      const response = await apiClient.get('/api/customers')
+      return response
     } catch (error) {
-      if (showError) {
-        const message = error instanceof Error ? error.message : errorMessage
-        toast.error(message)
-      }
-      return null
+      const message = error instanceof Error ? error.message : 'Failed to fetch customers'
+      toast.error(message)
+      return { success: false, error: message }
     }
   }
 
-  // Customers API
-  static async getCustomers() {
-    return this.request(
-      () => apiClient.get('/api/customers'),
-      { showError: true, errorMessage: 'Failed to fetch customers' }
-    )
+  static async createCustomer(data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.post('/api/customers', data)
+      toast.success('Customer created successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create customer'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async createCustomer(data: any) {
-    return this.request(
-      () => apiClient.post('/api/customers', data),
-      { 
-        showSuccess: true, 
-        successMessage: 'Customer created successfully',
-        showError: true, 
-        errorMessage: 'Failed to create customer' 
-      }
-    )
+  static async updateCustomer(id: string, data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.put(`/api/customers/${id}`, data)
+      toast.success('Customer updated successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update customer'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async updateCustomer(id: string, data: any) {
-    return this.request(
-      () => apiClient.put(`/api/customers/${id}`, data),
-      { 
-        showSuccess: true, 
-        successMessage: 'Customer updated successfully',
-        showError: true, 
-        errorMessage: 'Failed to update customer' 
-      }
-    )
-  }
-
-  static async deleteCustomer(id: string) {
-    return this.request(
-      () => apiClient.delete(`/api/customers/${id}`),
-      { 
-        showSuccess: true, 
-        successMessage: 'Customer deleted successfully',
-        showError: true, 
-        errorMessage: 'Failed to delete customer' 
-      }
-    )
+  static async deleteCustomer(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.delete(`/api/customers/${id}`)
+      toast.success('Customer deleted successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete customer'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
   // Technicians API
-  static async getTechnicians() {
-    return this.request(
-      () => apiClient.get('/api/technicians'),
-      { showError: true, errorMessage: 'Failed to fetch technicians' }
-    )
+  static async getTechnicians(): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get('/api/technicians')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch technicians'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async createTechnician(data: any) {
-    return this.request(
-      () => apiClient.post('/api/technicians', data),
-      { 
-        showSuccess: true, 
-        successMessage: 'Technician created successfully',
-        showError: true, 
-        errorMessage: 'Failed to create technician' 
-      }
-    )
+  static async createTechnician(data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.post('/api/technicians', data)
+      toast.success('Technician created successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create technician'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async updateTechnician(id: string, data: any) {
-    return this.request(
-      () => apiClient.put(`/api/technicians/${id}`, data),
-      { 
-        showSuccess: true, 
-        successMessage: 'Technician updated successfully',
-        showError: true, 
-        errorMessage: 'Failed to update technician' 
-      }
-    )
+  static async updateTechnician(id: string, data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.put(`/api/technicians/${id}`, data)
+      toast.success('Technician updated successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update technician'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async deleteTechnician(id: string) {
-    return this.request(
-      () => apiClient.delete(`/api/technicians/${id}`),
-      { 
-        showSuccess: true, 
-        successMessage: 'Technician deleted successfully',
-        showError: true, 
-        errorMessage: 'Failed to delete technician' 
-      }
-    )
+  static async deleteTechnician(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.delete(`/api/technicians/${id}`)
+      toast.success('Technician deleted successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete technician'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
   // Work Orders API
-  static async getWorkOrders() {
-    return this.request(
-      () => apiClient.get('/api/work-orders'),
-      { showError: true, errorMessage: 'Failed to fetch work orders' }
-    )
+  static async getWorkOrders(): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get('/api/work-orders')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch work orders'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async createWorkOrder(data: any) {
-    return this.request(
-      () => apiClient.post('/api/work-orders', data),
-      { 
-        showSuccess: true, 
-        successMessage: 'Work order created successfully',
-        showError: true, 
-        errorMessage: 'Failed to create work order' 
-      }
-    )
+  static async createWorkOrder(data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.post('/api/work-orders', data)
+      toast.success('Work order created successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create work order'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async updateWorkOrder(id: string, data: any) {
-    return this.request(
-      () => apiClient.put(`/api/work-orders/${id}`, data),
-      { 
-        showSuccess: true, 
-        successMessage: 'Work order updated successfully',
-        showError: true, 
-        errorMessage: 'Failed to update work order' 
-      }
-    )
+  static async updateWorkOrder(id: string, data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.put(`/api/work-orders/${id}`, data)
+      toast.success('Work order updated successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update work order'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async deleteWorkOrder(id: string) {
-    return this.request(
-      () => apiClient.delete(`/api/work-orders/${id}`),
-      { 
-        showSuccess: true, 
-        successMessage: 'Work order deleted successfully',
-        showError: true, 
-        errorMessage: 'Failed to delete work order' 
-      }
-    )
+  static async deleteWorkOrder(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.delete(`/api/work-orders/${id}`)
+      toast.success('Work order deleted successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete work order'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
   // Miners API
-  static async getMiners() {
-    return this.request(
-      () => apiClient.get('/api/miners'),
-      { showError: true, errorMessage: 'Failed to fetch miners' }
-    )
+  static async getMiners(): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get('/api/miners')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch miners'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async createMiner(data: any) {
-    return this.request(
-      () => apiClient.post('/api/miners', data),
-      { 
-        showSuccess: true, 
-        successMessage: 'Miner model created successfully',
-        showError: true, 
-        errorMessage: 'Failed to create miner model' 
-      }
-    )
+  static async createMiner(data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.post('/api/miners', data)
+      toast.success('Miner created successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create miner'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async updateMiner(id: string, data: any) {
-    return this.request(
-      () => apiClient.put(`/api/miners/${id}`, data),
-      { 
-        showSuccess: true, 
-        successMessage: 'Miner model updated successfully',
-        showError: true, 
-        errorMessage: 'Failed to update miner model' 
-      }
-    )
+  static async updateMiner(id: string, data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.put(`/api/miners/${id}`, data)
+      toast.success('Miner updated successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update miner'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async deleteMiner(id: string) {
-    return this.request(
-      () => apiClient.delete(`/api/miners/${id}`),
-      { 
-        showSuccess: true, 
-        successMessage: 'Miner model deleted successfully',
-        showError: true, 
-        errorMessage: 'Failed to delete miner model' 
-      }
-    )
+  static async deleteMiner(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.delete(`/api/miners/${id}`)
+      toast.success('Miner deleted successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete miner'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  // Admin Users API
-  static async getUsers() {
-    return this.request(
-      () => apiClient.get('/api/admin/users'),
-      { showError: true, errorMessage: 'Failed to fetch users' }
-    )
+  // Users API
+  static async getUsers(): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get('/api/admin/users')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch users'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async createUser(data: any) {
-    return this.request(
-      () => apiClient.post('/api/admin/users', data),
-      { 
-        showSuccess: true, 
-        successMessage: 'User created successfully',
-        showError: true, 
-        errorMessage: 'Failed to create user' 
-      }
-    )
+  static async createUser(data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.post('/api/admin/users', data)
+      toast.success('User created successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create user'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async updateUser(id: string, data: any) {
-    return this.request(
-      () => apiClient.put(`/api/admin/users/${id}`, data),
-      { 
-        showSuccess: true, 
-        successMessage: 'User updated successfully',
-        showError: true, 
-        errorMessage: 'Failed to update user' 
-      }
-    )
+  static async updateUser(id: string, data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.put(`/api/admin/users/${id}`, data)
+      toast.success('User updated successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update user'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 
-  static async deleteUser(id: string) {
-    return this.request(
-      () => apiClient.delete(`/api/admin/users/${id}`),
-      { 
-        showSuccess: true, 
-        successMessage: 'User deleted successfully',
-        showError: true, 
-        errorMessage: 'Failed to delete user' 
-      }
-    )
+  static async deleteUser(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.delete(`/api/admin/users/${id}`)
+      toast.success('User deleted successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete user'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 }
 

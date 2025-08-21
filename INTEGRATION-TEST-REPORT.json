@@ -1,0 +1,135 @@
+{
+  "timestamp": "2025-08-21T16:18:06.562Z",
+  "duration": "6.593s",
+  "summary": {
+    "total": 24,
+    "passed": 12,
+    "warnings": 1,
+    "failed": 11,
+    "successRate": "50%"
+  },
+  "results": {
+    "passed": [
+      {
+        "test": "API GET /api/customers",
+        "status": 200,
+        "message": "Endpoint responding correctly"
+      },
+      {
+        "test": "API GET /api/work-orders",
+        "status": 200,
+        "message": "Endpoint responding correctly"
+      },
+      {
+        "test": "API GET /api/invoices",
+        "status": 200,
+        "message": "Endpoint responding correctly"
+      },
+      {
+        "test": "API GET /api/payments",
+        "status": 200,
+        "message": "Endpoint responding correctly"
+      },
+      {
+        "test": "API GET /api/miners",
+        "status": 200,
+        "message": "Endpoint responding correctly"
+      },
+      {
+        "test": "API GET /api/health",
+        "status": 200,
+        "message": "Endpoint responding correctly"
+      },
+      {
+        "test": "Data format /api/customers",
+        "message": "Correct response format with success and data array"
+      },
+      {
+        "test": "Data format /api/invoices",
+        "message": "Correct response format with success and data array"
+      },
+      {
+        "test": "Data format /api/payments",
+        "message": "Correct response format with success and data array"
+      },
+      {
+        "test": "Performance Customers API",
+        "message": "Good response time: 243ms"
+      },
+      {
+        "test": "Performance Invoices API",
+        "message": "Good response time: 244ms"
+      },
+      {
+        "test": "Performance Payments API",
+        "message": "Good response time: 261ms"
+      }
+    ],
+    "failed": [
+      {
+        "test": "Frontend Home",
+        "error": "Page shows Error state",
+        "solution": "Check API responses and error handling"
+      },
+      {
+        "test": "Frontend Dashboard",
+        "error": "Page shows Error state",
+        "solution": "Check API responses and error handling"
+      },
+      {
+        "test": "Frontend Customers",
+        "error": "Page shows Error state",
+        "solution": "Check API responses and error handling"
+      },
+      {
+        "test": "Frontend Work Orders",
+        "error": "Page shows Error state",
+        "solution": "Check API responses and error handling"
+      },
+      {
+        "test": "Frontend Payments",
+        "error": "Expected content not found",
+        "solution": "Check page component and routing"
+      },
+      {
+        "test": "Frontend Miners",
+        "error": "Page shows Error state",
+        "solution": "Check API responses and error handling"
+      },
+      {
+        "test": "Customers Page Data Loading",
+        "error": "API has data but frontend shows Error",
+        "solution": "Check error handling and data parsing in frontend"
+      },
+      {
+        "test": "Invoices Page Data Loading",
+        "error": "API has data but frontend shows Loading",
+        "solution": "Check data fetching logic in frontend component"
+      },
+      {
+        "test": "Payments Page Data Loading",
+        "error": "API has data but frontend shows Loading",
+        "solution": "Check data fetching logic in frontend component"
+      },
+      {
+        "test": "Error Handling Non-existent API endpoint",
+        "error": "Expected 404, got 0",
+        "solution": "Implement proper error handling"
+      },
+      {
+        "test": "Error Handling Non-existent page",
+        "error": "Expected 404, got 0",
+        "solution": "Implement proper error handling"
+      }
+    ],
+    "warnings": [
+      {
+        "test": "Frontend Invoices",
+        "message": "Page shows Loading state - may indicate data fetching issues",
+        "solution": "Check API connectivity and data fetching logic"
+      }
+    ],
+    "totalTests": 24,
+    "duration": 6.593
+  }
+}

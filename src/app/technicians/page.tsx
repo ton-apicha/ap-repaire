@@ -1,7 +1,18 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Layout from '@/components/layout/Layout'
+import PageTemplate, { 
+  FilterSection, 
+  DataTable, 
+  ActionButton, 
+  ActionButtons, 
+  SortableHeader, 
+  SearchInput, 
+  FilterSelect, 
+  EmptyState, 
+  LoadingSpinner, 
+  ErrorState 
+} from '@/components/ui/PageTemplate'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
@@ -25,12 +36,12 @@ export default function Technicians() {
   const { t } = useLanguage()
   const [technicians, setTechnicians] = useState<Technician[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof Technician | 'workOrders' | 'hourlyRate'
-    direction: 'asc' | 'desc'
-  } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [sortField, setSortField] = useState<'name' | 'email' | 'phone' | 'speciality' | 'hourlyRate' | 'isActive' | 'workOrders'>('name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -47,16 +58,22 @@ export default function Technicians() {
   // Fetch technicians from API
   const fetchTechnicians = async () => {
     try {
+      setLoading(true)
+      setError(null)
+      
       const response = await fetch('/api/technicians')
       if (response.ok) {
         const data = await response.json()
-        setTechnicians(data.data || [])
+        if (data.success) {
+          setTechnicians(data.data || [])
+        } else {
+          setError('Failed to fetch technicians')
+        }
       } else {
-        toast.error('Failed to fetch technicians')
+        setError('Failed to fetch technicians')
       }
     } catch (error) {
-      console.error('Error fetching technicians:', error)
-      toast.error('Error fetching technicians')
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -114,7 +131,7 @@ export default function Technicians() {
     }
   }
 
-  // Handle edit technician
+  // Handle edit
   const handleEdit = (technician: Technician) => {
     setEditingTechnician(technician)
     setFormData({
@@ -122,18 +139,18 @@ export default function Technicians() {
       email: technician.email || '',
       phone: technician.phone,
       speciality: technician.speciality || '',
-      hourlyRate: technician.hourlyRate ? technician.hourlyRate.toString() : '',
+      hourlyRate: technician.hourlyRate?.toString() || '',
       isActive: technician.isActive
     })
     setShowEditModal(true)
   }
 
-  // Handle update technician
-  const handleUpdate = async (e: React.FormEvent) => {
+  // Handle edit submission
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!editingTechnician) return
-
+    
     try {
       const response = await fetch(`/api/technicians/${editingTechnician.id}`, {
         method: 'PUT',
@@ -148,9 +165,7 @@ export default function Technicians() {
 
       if (response.ok) {
         const updatedTechnician = await response.json()
-        setTechnicians(prev => prev.map(technician => 
-          technician.id === editingTechnician.id ? updatedTechnician.data : technician
-        ))
+        setTechnicians(prev => prev.map(t => t.id === editingTechnician.id ? updatedTechnician.data : t))
         setShowEditModal(false)
         setEditingTechnician(null)
         setFormData({
@@ -172,23 +187,23 @@ export default function Technicians() {
     }
   }
 
-  // Handle delete technician
+  // Handle delete
   const handleDelete = (technician: Technician) => {
     setTechnicianToDelete(technician)
     setShowDeleteModal(true)
   }
 
-  // Handle confirm delete
-  const handleConfirmDelete = async () => {
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
     if (!technicianToDelete) return
-
+    
     try {
       const response = await fetch(`/api/technicians/${technicianToDelete.id}`, {
         method: 'DELETE',
       })
 
       if (response.ok) {
-        setTechnicians(prev => prev.filter(technician => technician.id !== technicianToDelete.id))
+        setTechnicians(prev => prev.filter(t => t.id !== technicianToDelete.id))
         setShowDeleteModal(false)
         setTechnicianToDelete(null)
         toast.success('Technician deleted successfully!')
@@ -202,638 +217,505 @@ export default function Technicians() {
     }
   }
 
-  // Sorting function
-  const sortData = (data: Technician[]) => {
-    if (!sortConfig) return data
+  const handleSort = (field: 'name' | 'email' | 'phone' | 'speciality' | 'hourlyRate' | 'isActive' | 'workOrders') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('desc')
+    }
+  }
 
-    return [...data].sort((a, b) => {
-      let aValue: any
-      let bValue: any
+  const formatCurrency = (amount: number | null) => {
+    if (amount === null) return '-'
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount)
+  }
 
-      switch (sortConfig.key) {
-        case 'name':
-          aValue = a.name.toLowerCase()
-          bValue = b.name.toLowerCase()
-          break
-        case 'email':
-          aValue = (a.email || '').toLowerCase()
-          bValue = (b.email || '').toLowerCase()
-          break
-        case 'phone':
-          aValue = a.phone
-          bValue = b.phone
-          break
-        case 'speciality':
-          aValue = (a.speciality || '').toLowerCase()
-          bValue = (b.speciality || '').toLowerCase()
-          break
-        case 'hourlyRate':
-          aValue = parseFloat(String(a.hourlyRate || '0')) || 0
-          bValue = parseFloat(String(b.hourlyRate || '0')) || 0
-          break
-        case 'isActive':
-          aValue = a.isActive ? 1 : 0
-          bValue = b.isActive ? 1 : 0
-          break
-        case 'workOrders':
-          aValue = a._count?.workOrders || 0
-          bValue = b._count?.workOrders || 0
-          break
-        default:
-          aValue = a[sortConfig.key]
-          bValue = b[sortConfig.key]
-      }
-
-      if (aValue < bValue) {
-        return sortConfig.direction === 'asc' ? -1 : 1
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'asc' ? 1 : -1
-      }
-      return 0
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     })
   }
 
-  // Handle sort
-  const handleSort = (key: keyof Technician | 'workOrders' | 'hourlyRate') => {
-    let direction: 'asc' | 'desc' = 'asc'
-    
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
-    }
-    
-    setSortConfig({ key, direction })
-  }
-
-  // Get sort icon
-  const getSortIcon = (key: keyof Technician | 'workOrders' | 'hourlyRate') => {
-    if (!sortConfig || sortConfig.key !== key) {
-      return <ChevronUpIcon className="h-4 w-4 text-gray-400" />
-    }
-    
-    return sortConfig.direction === 'asc' 
-      ? <ChevronUpIcon className="h-4 w-4 text-blue-600" />
-      : <ChevronDownIcon className="h-4 w-4 text-blue-600" />
-  }
-
-  const filteredTechnicians = technicians.filter(technician =>
-    technician.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (technician.email && technician.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (technician.speciality && technician.speciality.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
-
-  const sortedTechnicians = sortData(filteredTechnicians)
+  // Filter and sort technicians
+  const filteredAndSortedTechnicians = technicians
+    .filter(technician => {
+      const matchesSearch = 
+        technician.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        technician.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        technician.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        technician.speciality?.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      const matchesStatus = statusFilter === 'all' || 
+        (statusFilter === 'active' && technician.isActive) ||
+        (statusFilter === 'inactive' && !technician.isActive)
+      
+      return matchesSearch && matchesStatus
+    })
+    .sort((a, b) => {
+      let aValue: any, bValue: any
+      
+      if (sortField === 'name') {
+        aValue = a.name
+        bValue = b.name
+      } else if (sortField === 'email') {
+        aValue = a.email || ''
+        bValue = b.email || ''
+      } else if (sortField === 'phone') {
+        aValue = a.phone
+        bValue = b.phone
+      } else if (sortField === 'speciality') {
+        aValue = a.speciality || ''
+        bValue = b.speciality || ''
+      } else if (sortField === 'hourlyRate') {
+        aValue = a.hourlyRate || 0
+        bValue = b.hourlyRate || 0
+      } else if (sortField === 'isActive') {
+        aValue = a.isActive
+        bValue = b.isActive
+      } else if (sortField === 'workOrders') {
+        aValue = a._count?.workOrders || 0
+        bValue = b._count?.workOrders || 0
+      }
+      
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
 
   if (loading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-        </div>
-      </Layout>
-    )
+    return <LoadingSpinner />
+  }
+
+  if (error) {
+    return <ErrorState error={error} onRetry={fetchTechnicians} />
   }
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('technicians.title')}</h1>
-            <p className="mt-2 text-gray-600">{t('technicians.technicianList')}</p>
-          </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <PlusIcon className="h-4 w-4 mr-2" />
-            {t('technicians.addTechnician')}
-          </button>
+    <PageTemplate
+      title="Technicians"
+      description="Manage technician information"
+      showCreateButton={true}
+      createButtonText="Add Technician"
+      onCreateClick={() => setShowAddModal(true)}
+      itemCount={filteredAndSortedTechnicians.length}
+      itemName="technicians"
+    >
+      {/* Filters */}
+      <FilterSection>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search technicians..."
+          />
+          <FilterSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: 'all', label: 'All Status' },
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' }
+            ]}
+            placeholder="Filter by status"
+          />
         </div>
+      </FilterSection>
 
-        {/* Search Bar */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder={t('common.search')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Technicians Table */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('common.actions')}
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('name')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>{t('common.name')}</span>
-                      {getSortIcon('name')}
+      {/* Technicians Table */}
+      <DataTable>
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <SortableHeader
+                field="name"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Name
+              </SortableHeader>
+              <SortableHeader
+                field="email"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Email
+              </SortableHeader>
+              <SortableHeader
+                field="phone"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Phone
+              </SortableHeader>
+              <SortableHeader
+                field="speciality"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Speciality
+              </SortableHeader>
+              <SortableHeader
+                field="hourlyRate"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Hourly Rate
+              </SortableHeader>
+              <SortableHeader
+                field="isActive"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Status
+              </SortableHeader>
+              <SortableHeader
+                field="workOrders"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Current Work Orders
+              </SortableHeader>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredAndSortedTechnicians.length === 0 ? (
+              <EmptyState
+                message="No technicians found"
+                actionText="Add Technician"
+                onAction={() => setShowAddModal(true)}
+              />
+            ) : (
+              filteredAndSortedTechnicians.map((technician) => (
+                <tr key={technician.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{technician.name}</div>
                     </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('email')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>{t('common.email')}</span>
-                      {getSortIcon('email')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('phone')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>{t('common.phone')}</span>
-                      {getSortIcon('phone')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('speciality')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>{t('technicians.speciality')}</span>
-                      {getSortIcon('speciality')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('hourlyRate')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>{t('technicians.hourlyRate')}</span>
-                      {getSortIcon('hourlyRate')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('isActive')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>{t('technicians.isActive')}</span>
-                      {getSortIcon('isActive')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('workOrders')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>{t('technicians.currentWorkOrders')}</span>
-                      {getSortIcon('workOrders')}
-                    </div>
-                  </th>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {technician.email || '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {technician.phone}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {technician.speciality || '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {formatCurrency(technician.hourlyRate)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      technician.isActive 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {technician.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {technician._count?.workOrders || 0}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <ActionButtons>
+                      <ActionButton onClick={() => handleEdit(technician)}>
+                        Edit
+                      </ActionButton>
+                      <ActionButton onClick={() => handleDelete(technician)} variant="danger">
+                        Delete
+                      </ActionButton>
+                    </ActionButtons>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedTechnicians.map((technician) => (
-                  <tr key={technician.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => handleEdit(technician)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Edit technician"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(technician)}
-                          className="text-red-600 hover:text-red-900"
-                          title="Delete technician"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-green-600">
-                              {technician.name.charAt(0)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {technician.name}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {technician.email || 'No email'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {technician.phone}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {technician.speciality || 'No speciality'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {technician.hourlyRate ? `฿${technician.hourlyRate}/hr` : 'Not set'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        technician.isActive 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {technician.isActive ? t('common.yes') : t('common.no')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {technician._count?.workOrders || 0}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filteredTechnicians.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No technicians found</p>
-              </div>
+              ))
             )}
+          </tbody>
+        </table>
+      </DataTable>
+
+      {/* Add Technician Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Add New Technician</h3>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Phone *</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Speciality</label>
+                  <input
+                    type="text"
+                    name="speciality"
+                    value={formData.speciality}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="e.g., Power Supply, Fan Repair"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Hourly Rate</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="hourlyRate"
+                    value={formData.hourlyRate}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={formData.isActive}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 block text-sm text-gray-900">
+                    Active
+                  </label>
+                </div>
+                
+                <div className="flex justify-end gap-2 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Add Technician
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Add Technician Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            {/* Backdrop with blur effect */}
-            <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm transition-opacity"></div>
-            
-            {/* Modal container */}
-            <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-              <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-white">
-                      {t('technicians.addTechnician')}
-                    </h3>
-                    <button
-                      onClick={() => setShowAddModal(false)}
-                      className="rounded-full p-1 text-white hover:bg-white hover:bg-opacity-20 transition-colors"
-                    >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('common.name')} *
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('common.email')}
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('common.phone')} *
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('technicians.speciality')}
-                    </label>
-                    <select 
-                      name="speciality"
-                      value={formData.speciality}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">{t('common.select')}</option>
-                      <option value="Bitmain Repair">{t('miners.bitmain')} Repair</option>
-                      <option value="Whatsminer Repair">{t('miners.whatsminer')} Repair</option>
-                      <option value="Avalon Repair">{t('miners.avalon')} Repair</option>
-                      <option value="General Repair">General Repair</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('technicians.hourlyRate')} (฿)
-                    </label>
-                    <input
-                      type="number"
-                      name="hourlyRate"
-                      value={formData.hourlyRate}
-                      onChange={handleInputChange}
-                      min="0"
-                      step="10"
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="isActive"
-                      checked={formData.isActive}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label className="ml-2 block text-sm text-gray-900">
-                      {t('technicians.isActive')}
-                    </label>
-                  </div>
-                  {/* Footer */}
-                  <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                    >
-                      {t('common.cancel')}
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                    >
-                      {t('common.save')}
-                    </button>
-                  </div>
-                </form>
+      {/* Edit Technician Modal */}
+      {showEditModal && editingTechnician && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Edit Technician</h3>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Technician Modal */}
-        {showEditModal && editingTechnician && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            {/* Backdrop with blur effect */}
-            <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm transition-opacity"></div>
-            
-            {/* Modal container */}
-            <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-              <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-white">
-                      Edit Technician
-                    </h3>
-                    <button
-                      onClick={() => {
-                        setShowEditModal(false)
-                        setEditingTechnician(null)
-                        setFormData({
-                          name: '',
-                          email: '',
-                          phone: '',
-                          speciality: '',
-                          hourlyRate: '',
-                          isActive: true
-                        })
-                      }}
-                      className="rounded-full p-1 text-white hover:bg-white hover:bg-opacity-20 transition-colors"
-                    >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
+              
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    required
+                  />
                 </div>
-
-                {/* Form */}
-                <form onSubmit={handleUpdate} className="px-6 py-4 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('common.name')} *
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('common.email')}
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('common.phone')} *
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('technicians.speciality')}
-                    </label>
-                    <select 
-                      name="speciality"
-                      value={formData.speciality}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">{t('common.select')}</option>
-                      <option value="Bitmain Repair">{t('miners.bitmain')} Repair</option>
-                      <option value="Whatsminer Repair">{t('miners.whatsminer')} Repair</option>
-                      <option value="Avalon Repair">{t('miners.avalon')} Repair</option>
-                      <option value="General Repair">General Repair</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('technicians.hourlyRate')} (฿)
-                    </label>
-                    <input
-                      type="number"
-                      name="hourlyRate"
-                      value={formData.hourlyRate}
-                      onChange={handleInputChange}
-                      min="0"
-                      step="10"
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="isActive"
-                      checked={formData.isActive}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label className="ml-2 block text-sm text-gray-900">
-                      {t('technicians.isActive')}
-                    </label>
-                  </div>
-                  {/* Footer */}
-                  <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowEditModal(false)
-                        setEditingTechnician(null)
-                        setFormData({
-                          name: '',
-                          email: '',
-                          phone: '',
-                          speciality: '',
-                          hourlyRate: '',
-                          isActive: true
-                        })
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                    >
-                      {t('common.cancel')}
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                    >
-                      {t('common.update')}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && technicianToDelete && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            {/* Backdrop with blur effect */}
-            <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm transition-opacity"></div>
-            
-            {/* Modal container */}
-            <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-              <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-white">
-                      Delete Technician
-                    </h3>
-                    <button
-                      onClick={() => {
-                        setShowDeleteModal(false)
-                        setTechnicianToDelete(null)
-                      }}
-                      className="rounded-full p-1 text-white hover:bg-white hover:bg-opacity-20 transition-colors"
-                    >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
                 </div>
-
-                {/* Content */}
-                <div className="px-6 py-4">
-                  <div className="flex items-center mb-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <h4 className="text-lg font-medium text-gray-900">Confirm Deletion</h4>
-                      <p className="text-sm text-gray-500">
-                        Are you sure you want to delete <strong className="text-gray-900">{technicianToDelete.name}</strong>?
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500 mb-6">
-                    This action cannot be undone. All associated data will be permanently removed.
-                  </p>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Phone *</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    required
+                  />
                 </div>
-
-                {/* Footer */}
-                <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Speciality</label>
+                  <input
+                    type="text"
+                    name="speciality"
+                    value={formData.speciality}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="e.g., Power Supply, Fan Repair"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Hourly Rate</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="hourlyRate"
+                    value={formData.hourlyRate}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={formData.isActive}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 block text-sm text-gray-900">
+                    Active
+                  </label>
+                </div>
+                
+                <div className="flex justify-end gap-2 pt-4">
                   <button
-                    onClick={() => {
-                      setShowDeleteModal(false)
-                      setTechnicianToDelete(null)
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                   >
-                    {t('common.cancel')}
+                    Cancel
                   </button>
                   <button
-                    onClick={handleConfirmDelete}
-                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                    type="submit"
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    Delete
+                    Update Technician
                   </button>
                 </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && technicianToDelete && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Delete Technician</h3>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  Are you sure you want to delete <strong>{technicianToDelete.name}</strong>? This action cannot be undone.
+                </p>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
-        )}
-      </div>
-    </Layout>
+        </div>
+      )}
+    </PageTemplate>
   )
 }

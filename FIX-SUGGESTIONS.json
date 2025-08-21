@@ -1,0 +1,14 @@
+[
+  {
+    "priority": "medium",
+    "category": "Frontend",
+    "issue": "Frontend pages not loading correctly",
+    "suggestion": "Check component rendering and routing configuration"
+  },
+  {
+    "priority": "high",
+    "category": "Integration",
+    "issue": "API-Frontend data flow issues",
+    "suggestion": "Check data fetching logic and response format handling"
+  }
+]

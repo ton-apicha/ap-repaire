@@ -1,0 +1,229 @@
+{
+  "timestamp": "2025-08-21T16:15:05.163Z",
+  "duration": "7.271s",
+  "summary": {
+    "passed": 28,
+    "warnings": 7,
+    "issues": 5
+  },
+  "details": {
+    "passed": [
+      {
+        "category": "Environment",
+        "description": "Node.js v24.6.0 is compatible",
+        "timestamp": "2025-08-21T16:14:57.906Z"
+      },
+      {
+        "category": "Environment",
+        "description": "package.json found",
+        "timestamp": "2025-08-21T16:14:57.906Z"
+      },
+      {
+        "category": "Environment",
+        "description": "node_modules directory exists",
+        "timestamp": "2025-08-21T16:14:57.906Z"
+      },
+      {
+        "category": "Dependencies",
+        "description": "next is installed",
+        "timestamp": "2025-08-21T16:14:57.906Z"
+      },
+      {
+        "category": "Dependencies",
+        "description": "react is installed",
+        "timestamp": "2025-08-21T16:14:57.906Z"
+      },
+      {
+        "category": "Dependencies",
+        "description": "react-dom is installed",
+        "timestamp": "2025-08-21T16:14:57.906Z"
+      },
+      {
+        "category": "Dependencies",
+        "description": "@prisma/client is installed",
+        "timestamp": "2025-08-21T16:14:57.906Z"
+      },
+      {
+        "category": "Configuration",
+        "description": ".env.local exists",
+        "timestamp": "2025-08-21T16:14:57.906Z"
+      },
+      {
+        "category": "Environment Variables",
+        "description": "NEXTAUTH_SECRET is configured",
+        "timestamp": "2025-08-21T16:14:57.907Z"
+      },
+      {
+        "category": "Environment Variables",
+        "description": "NEXTAUTH_URL is configured",
+        "timestamp": "2025-08-21T16:14:57.907Z"
+      },
+      {
+        "category": "Configuration",
+        "description": "tsconfig.json exists",
+        "timestamp": "2025-08-21T16:14:57.907Z"
+      },
+      {
+        "category": "Configuration",
+        "description": "prisma/schema.prisma exists",
+        "timestamp": "2025-08-21T16:14:57.907Z"
+      },
+      {
+        "category": "Database",
+        "description": "SQLite database file exists",
+        "timestamp": "2025-08-21T16:14:57.907Z"
+      },
+      {
+        "category": "Database",
+        "description": "Prisma client is generated",
+        "timestamp": "2025-08-21T16:14:57.907Z"
+      },
+      {
+        "category": "Server",
+        "description": "Development server is running",
+        "timestamp": "2025-08-21T16:14:58.468Z"
+      },
+      {
+        "category": "API",
+        "description": "http://localhost:3000/api/customers is responding",
+        "timestamp": "2025-08-21T16:14:58.997Z"
+      },
+      {
+        "category": "API",
+        "description": "http://localhost:3000/api/work-orders is responding",
+        "timestamp": "2025-08-21T16:14:59.313Z"
+      },
+      {
+        "category": "API",
+        "description": "http://localhost:3000/api/invoices is responding",
+        "timestamp": "2025-08-21T16:14:59.813Z"
+      },
+      {
+        "category": "API",
+        "description": "http://localhost:3000/api/payments is responding",
+        "timestamp": "2025-08-21T16:15:00.169Z"
+      },
+      {
+        "category": "API",
+        "description": "http://localhost:3000/api/health is responding",
+        "timestamp": "2025-08-21T16:15:00.583Z"
+      },
+      {
+        "category": "Frontend",
+        "description": "src/app/dashboard exists",
+        "timestamp": "2025-08-21T16:15:00.583Z"
+      },
+      {
+        "category": "Frontend",
+        "description": "src/app/customers exists",
+        "timestamp": "2025-08-21T16:15:00.584Z"
+      },
+      {
+        "category": "Frontend",
+        "description": "src/app/work-orders exists",
+        "timestamp": "2025-08-21T16:15:00.585Z"
+      },
+      {
+        "category": "Frontend",
+        "description": "src/app/invoices exists",
+        "timestamp": "2025-08-21T16:15:00.588Z"
+      },
+      {
+        "category": "Frontend",
+        "description": "src/app/payments exists",
+        "timestamp": "2025-08-21T16:15:00.589Z"
+      },
+      {
+        "category": "Frontend",
+        "description": "src/components/layout exists",
+        "timestamp": "2025-08-21T16:15:00.589Z"
+      },
+      {
+        "category": "Frontend",
+        "description": "src/contexts exists",
+        "timestamp": "2025-08-21T16:15:00.591Z"
+      },
+      {
+        "category": "TypeScript",
+        "description": "Path aliases configured",
+        "timestamp": "2025-08-21T16:15:00.592Z"
+      }
+    ],
+    "warnings": [
+      {
+        "category": "Configuration",
+        "description": "Optional file missing: next.config.js",
+        "recommendation": "Consider creating next.config.js for Next.js configuration",
+        "timestamp": "2025-08-21T16:14:57.907Z"
+      },
+      {
+        "category": "Tailwind CSS",
+        "description": "Potential Tailwind class issue in src/app/customers/page.tsx",
+        "recommendation": "Ensure Tailwind CSS is properly configured",
+        "timestamp": "2025-08-21T16:15:00.585Z"
+      },
+      {
+        "category": "Tailwind CSS",
+        "description": "Potential Tailwind class issue in src/app/work-orders/[id]/page.tsx",
+        "recommendation": "Ensure Tailwind CSS is properly configured",
+        "timestamp": "2025-08-21T16:15:00.586Z"
+      },
+      {
+        "category": "Tailwind CSS",
+        "description": "Potential Tailwind class issue in src/app/work-orders/page.tsx",
+        "recommendation": "Ensure Tailwind CSS is properly configured",
+        "timestamp": "2025-08-21T16:15:00.588Z"
+      },
+      {
+        "category": "Tailwind CSS",
+        "description": "Potential Tailwind class issue in src/app/invoices/page.tsx",
+        "recommendation": "Ensure Tailwind CSS is properly configured",
+        "timestamp": "2025-08-21T16:15:00.589Z"
+      },
+      {
+        "category": "Tailwind CSS",
+        "description": "Potential Tailwind class issue in src/app/payments/page.tsx",
+        "recommendation": "Ensure Tailwind CSS is properly configured",
+        "timestamp": "2025-08-21T16:15:00.589Z"
+      },
+      {
+        "category": "Build",
+        "description": "ESLint issues found",
+        "recommendation": "Fix linting errors: npx eslint . --fix",
+        "timestamp": "2025-08-21T16:15:05.163Z"
+      }
+    ],
+    "issues": [
+      {
+        "category": "Environment Variables",
+        "description": "Missing DATABASE_URL in .env.local",
+        "solution": "Add DATABASE_URL=your_value to .env.local",
+        "timestamp": "2025-08-21T16:14:57.907Z"
+      },
+      {
+        "category": "Configuration",
+        "description": "Missing required file: tailwind.config.js",
+        "solution": "Create tailwind.config.js with proper Tailwind CSS configuration",
+        "timestamp": "2025-08-21T16:14:57.907Z"
+      },
+      {
+        "category": "Database",
+        "description": "Cannot connect to database",
+        "solution": "Check DATABASE_URL and run: npx prisma migrate dev",
+        "timestamp": "2025-08-21T16:14:57.986Z"
+      },
+      {
+        "category": "Tailwind CSS",
+        "description": "Tailwind directives not found",
+        "solution": "Add @tailwind base; @tailwind components; @tailwind utilities; to your main CSS file",
+        "timestamp": "2025-08-21T16:15:00.591Z"
+      },
+      {
+        "category": "Build",
+        "description": "TypeScript compilation failed",
+        "solution": "Fix TypeScript errors: npx tsc --noEmit",
+        "timestamp": "2025-08-21T16:15:04.292Z"
+      }
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Layout from '@/components/layout/Layout'
+import PageTemplate, { ActionButtons, ActionButton, LoadingSpinner, ErrorState } from '@/components/ui/PageTemplate'
 import AuthGuard from '@/components/auth/AuthGuard'
 import { useLanguage } from '@/contexts/LanguageContext'
 import {
@@ -11,37 +11,9 @@ import {
   CurrencyDollarIcon,
   ClockIcon,
   CheckCircleIcon,
+  EyeIcon,
+  PencilIcon,
 } from '@heroicons/react/24/outline'
-
-const stats = [
-  { name: 'totalCustomers', value: '0', icon: UsersIcon, color: 'bg-blue-500' },
-  { name: 'totalTechnicians', value: '0', icon: WrenchScrewdriverIcon, color: 'bg-green-500' },
-  { name: 'pendingWorkOrders', value: '0', icon: ClockIcon, color: 'bg-yellow-500' },
-  { name: 'completedWorkOrders', value: '0', icon: CheckCircleIcon, color: 'bg-green-600' },
-  { name: 'totalRevenue', value: '$0', icon: CurrencyDollarIcon, color: 'bg-purple-500' },
-  { name: 'activeWorkOrders', value: '0', icon: ClipboardDocumentListIcon, color: 'bg-indigo-500' },
-]
-
-const recentWorkOrders = [
-  {
-    id: '1',
-    orderNumber: 'WO-001',
-    customer: 'John Doe',
-    issue: 'Power supply failure',
-    status: 'pending',
-    priority: 'high',
-    date: '2024-01-15',
-  },
-  {
-    id: '2',
-    orderNumber: 'WO-002',
-    customer: 'Jane Smith',
-    issue: 'Fan malfunction',
-    status: 'inProgress',
-    priority: 'medium',
-    date: '2024-01-14',
-  },
-]
 
 export default function Dashboard() {
   const { t } = useLanguage()
@@ -56,6 +28,7 @@ export default function Dashboard() {
   })
   const [recentWorkOrders, setRecentWorkOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchDashboardData()
@@ -63,6 +36,7 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
+      setError(null)
       // Fetch all data in parallel
       const [customersRes, techniciansRes, workOrdersRes, minersRes] = await Promise.all([
         fetch('/api/customers'),
@@ -107,6 +81,7 @@ export default function Dashboard() {
       setRecentWorkOrders(recentOrders)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
+      setError('Failed to load dashboard data')
       // Set default values on error
       setStats({
         totalCustomers: 0,
@@ -191,103 +166,131 @@ export default function Dashboard() {
     }
   }
 
+  const handleView = (id: string) => {
+    window.location.href = `/work-orders/${id}`
+  }
+
+  const handleEdit = (id: string) => {
+    window.location.href = `/work-orders/${id}?edit=true`
+  }
+
+  if (loading) {
+    return (
+      <AuthGuard>
+        <PageTemplate
+          title={t('dashboard.title')}
+          description={t('dashboard.overview')}
+          showCreateButton={false}
+        >
+          <LoadingSpinner />
+        </PageTemplate>
+      </AuthGuard>
+    )
+  }
+
+  if (error) {
+    return (
+      <AuthGuard>
+        <PageTemplate
+          title={t('dashboard.title')}
+          description={t('dashboard.overview')}
+          showCreateButton={false}
+        >
+          <ErrorState error={error} onRetry={fetchDashboardData} />
+        </PageTemplate>
+      </AuthGuard>
+    )
+  }
+
   return (
     <AuthGuard>
-      <Layout>
-        <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
-          <p className="mt-2 text-gray-600">{t('dashboard.overview')}</p>
-        </div>
-
+      <PageTemplate
+        title={t('dashboard.title')}
+        description={t('dashboard.overview')}
+        showCreateButton={false}
+      >
         {/* Stats Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="overflow-hidden rounded-lg bg-white shadow">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 rounded-md p-3 bg-blue-500">
-                    <UsersIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        {t('dashboard.totalCustomers')}
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {stats.totalCustomers}
-                      </dd>
-                    </dl>
-                  </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          <div className="overflow-hidden rounded-lg bg-white shadow">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-md p-3 bg-blue-500">
+                  <UsersIcon className="h-6 w-6 text-white" />
                 </div>
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-lg bg-white shadow">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 rounded-md p-3 bg-green-500">
-                    <WrenchScrewdriverIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        {t('dashboard.totalTechnicians')}
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {stats.totalTechnicians}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-lg bg-white shadow">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 rounded-md p-3 bg-yellow-500">
-                    <ClipboardDocumentListIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        {t('dashboard.totalWorkOrders')}
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {stats.totalWorkOrders}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-lg bg-white shadow">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 rounded-md p-3 bg-purple-500">
-                    <CurrencyDollarIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        {t('dashboard.totalRevenue')}
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        ฿{stats.totalRevenue.toLocaleString()}
-                      </dd>
-                    </dl>
-                  </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      {t('dashboard.totalCustomers')}
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.totalCustomers}
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
           </div>
-        )}
+
+          <div className="overflow-hidden rounded-lg bg-white shadow">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-md p-3 bg-green-500">
+                  <WrenchScrewdriverIcon className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      {t('dashboard.totalTechnicians')}
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.totalTechnicians}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-lg bg-white shadow">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-md p-3 bg-yellow-500">
+                  <ClipboardDocumentListIcon className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      {t('dashboard.totalWorkOrders')}
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.totalWorkOrders}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-lg bg-white shadow">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-md p-3 bg-purple-500">
+                  <CurrencyDollarIcon className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      {t('dashboard.totalRevenue')}
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      ฿{stats.totalRevenue.toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Recent Work Orders */}
         <div className="bg-white shadow rounded-lg">
@@ -318,12 +321,15 @@ export default function Dashboard() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('common.date')}
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('common.actions')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {recentWorkOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                       No work orders found
                     </td>
                   </tr>
@@ -352,6 +358,18 @@ export default function Dashboard() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <ActionButtons>
+                          <ActionButton onClick={() => handleView(order.id)}>
+                            <EyeIcon className="h-4 w-4" />
+                            View
+                          </ActionButton>
+                          <ActionButton onClick={() => handleEdit(order.id)}>
+                            <PencilIcon className="h-4 w-4" />
+                            Edit
+                          </ActionButton>
+                        </ActionButtons>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -359,8 +377,7 @@ export default function Dashboard() {
             </table>
           </div>
         </div>
-              </div>
-      </Layout>
+      </PageTemplate>
     </AuthGuard>
   )
 }

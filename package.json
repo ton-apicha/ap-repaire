@@ -36,6 +36,10 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
+    "diagnostic": "node scripts/diagnostic-health-check.js",
+    "diagnostic:fix": "node scripts/diagnostic-health-check.js && chmod +x quick-fix.sh && ./quick-fix.sh",
+    "test:integration": "node tests/integration/api-frontend-integration.test.js",
+    "test:health": "npm run diagnostic && npm run test:integration",
     "storybook": "echo 'Storybook not available'",
     "storybook:build": "echo 'Storybook not available'",
     "analyze": "ANALYZE=true npm run build",
@@ -55,7 +59,8 @@
     "health-check:full": "npm run health-check && npm run test:ci && npm run build",
     "postinstall": "prisma generate",
     "prebuild": "npm run type-check && npm run lint",
-    "precommit": "npm run lint:fix && npm run format"
+    "precommit": "npm run lint:fix && npm run format",
+    "create-page": "tsx scripts/create-page.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",

@@ -1,7 +1,18 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Layout from '@/components/layout/Layout'
+import PageTemplate, { 
+  FilterSection, 
+  DataTable, 
+  ActionButton, 
+  ActionButtons, 
+  SortableHeader, 
+  SearchInput, 
+  FilterSelect, 
+  EmptyState, 
+  LoadingSpinner, 
+  ErrorState 
+} from '@/components/ui/PageTemplate'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
@@ -17,18 +28,17 @@ interface MinerModel {
   isActive: boolean
 }
 
-
 export default function Miners() {
   const { t } = useLanguage()
   const [minerModels, setMinerModels] = useState<MinerModel[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [brandFilter, setBrandFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof MinerModel | 'hashRate' | 'power'
-    direction: 'asc' | 'desc'
-  } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [sortField, setSortField] = useState<'brand' | 'model' | 'series' | 'hashRate' | 'power' | 'isActive'>('brand')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [formData, setFormData] = useState({
     brand: '',
     model: '',
@@ -38,6 +48,10 @@ export default function Miners() {
     description: '',
     isActive: true
   })
+  const [editingMiner, setEditingMiner] = useState<MinerModel | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [minerToDelete, setMinerToDelete] = useState<MinerModel | null>(null)
 
   useEffect(() => {
     fetchMinerModels()
@@ -45,16 +59,22 @@ export default function Miners() {
 
   const fetchMinerModels = async () => {
     try {
+      setLoading(true)
+      setError(null)
+      
       const response = await fetch('/api/miners')
       if (response.ok) {
         const data = await response.json()
-        setMinerModels(data.data || [])
+        if (data.success) {
+          setMinerModels(data.data || [])
+        } else {
+          setError('Failed to fetch miner models')
+        }
       } else {
-        toast.error('Failed to fetch miner models')
+        setError('Failed to fetch miner models')
       }
     } catch (error) {
-      console.error('Error fetching miner models:', error)
-      toast.error('Error fetching miner models')
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -104,388 +124,620 @@ export default function Miners() {
     }
   }
 
-  // Sorting function
-  const sortData = (data: MinerModel[]) => {
-    if (!sortConfig) return data
-
-    return [...data].sort((a, b) => {
-      let aValue: any
-      let bValue: any
-
-      switch (sortConfig.key) {
-        case 'brand':
-          aValue = a.brand.toLowerCase()
-          bValue = b.brand.toLowerCase()
-          break
-        case 'model':
-          aValue = a.model.toLowerCase()
-          bValue = b.model.toLowerCase()
-          break
-        case 'series':
-          aValue = a.series.toLowerCase()
-          bValue = b.series.toLowerCase()
-          break
-        case 'hashRate':
-          aValue = a.hashRate.toLowerCase()
-          bValue = b.hashRate.toLowerCase()
-          break
-        case 'power':
-          aValue = a.power.toLowerCase()
-          bValue = b.power.toLowerCase()
-          break
-        case 'isActive':
-          aValue = a.isActive ? 1 : 0
-          bValue = b.isActive ? 1 : 0
-          break
-        default:
-          aValue = a[sortConfig.key]
-          bValue = b[sortConfig.key]
-      }
-
-      if (aValue < bValue) {
-        return sortConfig.direction === 'asc' ? -1 : 1
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'asc' ? 1 : -1
-      }
-      return 0
+  // Handle edit
+  const handleEdit = (miner: MinerModel) => {
+    setEditingMiner(miner)
+    setFormData({
+      brand: miner.brand,
+      model: miner.model,
+      series: miner.series,
+      hashRate: miner.hashRate,
+      power: miner.power,
+      description: miner.description,
+      isActive: miner.isActive
     })
+    setShowEditModal(true)
   }
 
-  // Handle sort
-  const handleSort = (key: keyof MinerModel | 'hashRate' | 'power') => {
-    let direction: 'asc' | 'desc' = 'asc'
+  // Handle edit submission
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
+    if (!editingMiner) return
+    
+    try {
+      const response = await fetch(`/api/miners/${editingMiner.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (response.ok) {
+        const updatedMiner = await response.json()
+        setMinerModels(prev => prev.map(m => m.id === editingMiner.id ? updatedMiner.data : m))
+        setShowEditModal(false)
+        setEditingMiner(null)
+        setFormData({
+          brand: '',
+          model: '',
+          series: '',
+          hashRate: '',
+          power: '',
+          description: '',
+          isActive: true
+        })
+        toast.success('Miner model updated successfully!')
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to update miner model')
+      }
+    } catch (error) {
+      console.error('Error updating miner model:', error)
+      toast.error('Error updating miner model')
     }
-    
-    setSortConfig({ key, direction })
   }
 
-  // Get sort icon
-  const getSortIcon = (key: keyof MinerModel | 'hashRate' | 'power') => {
-    if (!sortConfig || sortConfig.key !== key) {
-      return <ChevronUpIcon className="h-4 w-4 text-gray-400" />
+  // Handle delete
+  const handleDelete = (miner: MinerModel) => {
+    setMinerToDelete(miner)
+    setShowDeleteModal(true)
+  }
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!minerToDelete) return
+    
+    try {
+      const response = await fetch(`/api/miners/${minerToDelete.id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setMinerModels(prev => prev.filter(m => m.id !== minerToDelete.id))
+        setShowDeleteModal(false)
+        setMinerToDelete(null)
+        toast.success('Miner model deleted successfully!')
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to delete miner model')
+      }
+    } catch (error) {
+      console.error('Error deleting miner model:', error)
+      toast.error('Error deleting miner model')
     }
-    
-    return sortConfig.direction === 'asc' 
-      ? <ChevronUpIcon className="h-4 w-4 text-blue-600" />
-      : <ChevronDownIcon className="h-4 w-4 text-blue-600" />
   }
 
-  const filteredMinerModels = minerModels.filter(miner => {
-    const matchesSearch = 
-      miner.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      miner.series.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      miner.description.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesBrand = brandFilter === 'all' || miner.brand.toLowerCase() === brandFilter.toLowerCase()
-    
-    return matchesSearch && matchesBrand
-  })
+  const handleSort = (field: 'brand' | 'model' | 'series' | 'hashRate' | 'power' | 'isActive') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('desc')
+    }
+  }
 
-  const sortedMinerModels = sortData(filteredMinerModels)
+  // Filter and sort miner models
+  const filteredAndSortedMinerModels = minerModels
+    .filter(miner => {
+      const matchesSearch = 
+        miner.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        miner.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        miner.series.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        miner.description.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      const matchesBrand = brandFilter === 'all' || miner.brand.toLowerCase() === brandFilter.toLowerCase()
+      const matchesStatus = statusFilter === 'all' || 
+        (statusFilter === 'active' && miner.isActive) ||
+        (statusFilter === 'inactive' && !miner.isActive)
+      
+      return matchesSearch && matchesBrand && matchesStatus
+    })
+    .sort((a, b) => {
+      let aValue: any, bValue: any
+      
+      if (sortField === 'brand') {
+        aValue = a.brand
+        bValue = b.brand
+      } else if (sortField === 'model') {
+        aValue = a.model
+        bValue = b.model
+      } else if (sortField === 'series') {
+        aValue = a.series
+        bValue = b.series
+      } else if (sortField === 'hashRate') {
+        aValue = a.hashRate
+        bValue = b.hashRate
+      } else if (sortField === 'power') {
+        aValue = a.power
+        bValue = b.power
+      } else if (sortField === 'isActive') {
+        aValue = a.isActive
+        bValue = b.isActive
+      }
+      
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
+
+  if (loading) {
+    return <LoadingSpinner />
+  }
+
+  if (error) {
+    return <ErrorState error={error} onRetry={fetchMinerModels} />
+  }
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('miners.title')}</h1>
-            <p className="mt-2 text-gray-600">{t('miners.minerModelList')}</p>
-          </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <PlusIcon className="h-4 w-4 mr-2" />
-            {t('miners.addMinerModel')}
-          </button>
+    <PageTemplate
+      title="Miner Models"
+      description="Manage cryptocurrency miner models"
+      showCreateButton={true}
+      createButtonText="Add Miner Model"
+      onCreateClick={() => setShowAddModal(true)}
+      itemCount={filteredAndSortedMinerModels.length}
+      itemName="miner models"
+    >
+      {/* Filters */}
+      <FilterSection>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search miner models..."
+          />
+          <FilterSelect
+            value={brandFilter}
+            onChange={setBrandFilter}
+            options={[
+              { value: 'all', label: 'All Brands' },
+              { value: 'bitmain', label: 'Bitmain' },
+              { value: 'whatsminer', label: 'Whatsminer' },
+              { value: 'avalon', label: 'Avalon' }
+            ]}
+            placeholder="Filter by brand"
+          />
+          <FilterSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: 'all', label: 'All Status' },
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' }
+            ]}
+            placeholder="Filter by status"
+          />
         </div>
+      </FilterSection>
 
-        {/* Filters */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder={t('common.search')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <select
-                value={brandFilter}
-                onChange={(e) => setBrandFilter(e.target.value)}
-                className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+      {/* Miner Models Table */}
+      <DataTable>
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <SortableHeader
+                field="brand"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
               >
-                <option value="all">{t('common.all')}</option>
-                <option value="bitmain">{t('miners.bitmain')}</option>
-                <option value="whatsminer">{t('miners.whatsminer')}</option>
-                <option value="avalon">{t('miners.avalon')}</option>
-              </select>
-            </div>
-          </div>
-        </div>
+                Brand
+              </SortableHeader>
+              <SortableHeader
+                field="model"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Model
+              </SortableHeader>
+              <SortableHeader
+                field="series"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Series
+              </SortableHeader>
+              <SortableHeader
+                field="hashRate"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Hash Rate
+              </SortableHeader>
+              <SortableHeader
+                field="power"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Power
+              </SortableHeader>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Description
+              </th>
+              <SortableHeader
+                field="isActive"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Status
+              </SortableHeader>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredAndSortedMinerModels.length === 0 ? (
+              <EmptyState
+                message="No miner models found"
+                actionText="Add Miner Model"
+                onAction={() => setShowAddModal(true)}
+              />
+            ) : (
+              filteredAndSortedMinerModels.map((miner) => (
+                <tr key={miner.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {miner.brand}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {miner.model}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {miner.series}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {miner.hashRate}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {miner.power}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="max-w-xs truncate" title={miner.description}>
+                      {miner.description}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      miner.isActive 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {miner.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <ActionButtons>
+                      <ActionButton onClick={() => handleEdit(miner)}>
+                        Edit
+                      </ActionButton>
+                      <ActionButton onClick={() => handleDelete(miner)} variant="danger">
+                        Delete
+                      </ActionButton>
+                    </ActionButtons>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </DataTable>
 
-                {/* Miner Models Table */}
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          </div>
-        ) : (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('common.actions')}
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('brand')}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span>{t('miners.brand')}</span>
-                        {getSortIcon('brand')}
-                      </div>
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('model')}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span>{t('miners.model')}</span>
-                        {getSortIcon('model')}
-                      </div>
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('series')}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span>{t('miners.series')}</span>
-                        {getSortIcon('series')}
-                      </div>
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('hashRate')}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span>{t('miners.hashRate')}</span>
-                        {getSortIcon('hashRate')}
-                      </div>
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('power')}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span>{t('miners.power')}</span>
-                        {getSortIcon('power')}
-                      </div>
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('isActive')}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span>{t('common.status')}</span>
-                        {getSortIcon('isActive')}
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredMinerModels.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                        No miner models found
-                      </td>
-                    </tr>
-                  ) : (
-                    sortedMinerModels.map((miner) => (
-                      <tr key={miner.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            <button className="text-blue-600 hover:text-blue-900" title="Edit">
-                              <PencilIcon className="h-4 w-4" />
-                            </button>
-                            <button className="text-red-600 hover:text-red-900" title="Delete">
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {miner.brand}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {miner.model}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {miner.series}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {miner.hashRate}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {miner.power}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            miner.isActive 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {miner.isActive ? t('miners.isActive') : t('common.no')}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Add Miner Model Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm transition-opacity"></div>
-            
-            <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-              <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-white">
-                      {t('miners.addMinerModel')}
-                    </h3>
-                    <button
-                      onClick={() => setShowAddModal(false)}
-                      className="rounded-full p-1 text-white hover:bg-white hover:bg-opacity-20 transition-colors"
-                    >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
+      {/* Add Miner Model Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Add New Miner Model</h3>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Brand *</label>
+                  <select
+                    name="brand"
+                    value={formData.brand}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    required
+                  >
+                    <option value="">Select a brand</option>
+                    <option value="bitmain">Bitmain</option>
+                    <option value="whatsminer">Whatsminer</option>
+                    <option value="avalon">Avalon</option>
+                  </select>
                 </div>
-
-                <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Model *</label>
+                  <input
+                    type="text"
+                    name="model"
+                    value={formData.model}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="e.g., S19 Pro"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Series</label>
+                  <input
+                    type="text"
+                    name="series"
+                    value={formData.series}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="e.g., Antminer S19"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('miners.brand')}
-                    </label>
-                    <select
-                      name="brand"
-                      value={formData.brand}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    >
-                      <option value="">{t('common.select')}</option>
-                      <option value="Bitmain">Bitmain</option>
-                      <option value="Whatsminer">Whatsminer</option>
-                      <option value="Avalon">Avalon</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('miners.model')}
-                    </label>
-                    <input
-                      type="text"
-                      name="model"
-                      value={formData.model}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('miners.series')}
-                    </label>
-                    <input
-                      type="text"
-                      name="series"
-                      value={formData.series}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('miners.hashRate')}
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700">Hash Rate *</label>
                     <input
                       type="text"
                       name="hashRate"
                       value={formData.hashRate}
                       onChange={handleInputChange}
-                      placeholder="e.g., 95 TH/s"
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      placeholder="e.g., 110 TH/s"
                       required
                     />
                   </div>
+                  
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('miners.power')}
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700">Power *</label>
                     <input
                       type="text"
                       name="power"
                       value={formData.power}
                       onChange={handleInputChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       placeholder="e.g., 3250W"
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
                   </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Additional details about this miner model"
+                  />
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={formData.isActive}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 block text-sm text-gray-900">
+                    Active
+                  </label>
+                </div>
+                
+                <div className="flex justify-end gap-2 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Add Miner Model
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Miner Model Modal */}
+      {showEditModal && editingMiner && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Edit Miner Model</h3>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Brand *</label>
+                  <select
+                    name="brand"
+                    value={formData.brand}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    required
+                  >
+                    <option value="">Select a brand</option>
+                    <option value="bitmain">Bitmain</option>
+                    <option value="whatsminer">Whatsminer</option>
+                    <option value="avalon">Avalon</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Model *</label>
+                  <input
+                    type="text"
+                    name="model"
+                    value={formData.model}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="e.g., S19 Pro"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Series</label>
+                  <input
+                    type="text"
+                    name="series"
+                    value={formData.series}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="e.g., Antminer S19"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('miners.description')}
-                    </label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
+                    <label className="block text-sm font-medium text-gray-700">Hash Rate *</label>
+                    <input
+                      type="text"
+                      name="hashRate"
+                      value={formData.hashRate}
                       onChange={handleInputChange}
-                      rows={3}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      placeholder="e.g., 110 TH/s"
                       required
                     />
                   </div>
-                  <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                    >
-                      {t('common.cancel')}
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                    >
-                      {t('common.save')}
-                    </button>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Power *</label>
+                    <input
+                      type="text"
+                      name="power"
+                      value={formData.power}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      placeholder="e.g., 3250W"
+                      required
+                    />
                   </div>
-                </form>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Additional details about this miner model"
+                  />
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={formData.isActive}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 block text-sm text-gray-900">
+                    Active
+                  </label>
+                </div>
+                
+                <div className="flex justify-end gap-2 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Update Miner Model
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && minerToDelete && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Delete Miner Model</h3>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  Are you sure you want to delete <strong>{minerToDelete.brand} {minerToDelete.model}</strong>? This action cannot be undone.
+                </p>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
-        )}
-      </div>
-    </Layout>
+        </div>
+      )}
+    </PageTemplate>
   )
 }

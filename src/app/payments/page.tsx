@@ -1,88 +1,178 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Layout from '@/components/layout/Layout'
-import AuthGuard from '@/components/auth/AuthGuard'
+import PageTemplate, { 
+  FilterSection, 
+  DataTable, 
+  ActionButton, 
+  ActionButtons, 
+  SortableHeader, 
+  SearchInput, 
+  FilterSelect, 
+  EmptyState, 
+  LoadingSpinner, 
+  ErrorState 
+} from '@/components/ui/PageTemplate'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { usePayments } from '@/hooks/useApi'
-import { formatCurrency, getPaymentMethodDisplayName } from '@/lib/utils'
-import {
-  PlusIcon,
-  MagnifyingGlassIcon,
-  CreditCardIcon,
-} from '@heroicons/react/24/outline'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { format } from 'date-fns'
-import { th, enUS, zhCN } from 'date-fns/locale'
 
-const dateLocales = { th, en: enUS, zh: zhCN }
+interface Payment {
+  id: string
+  invoiceId: string
+  amount: number
+  paymentDate: string
+  paymentMethod: string
+  reference?: string
+  notes?: string
+  invoice?: {
+    id: string
+    invoiceNumber: string
+    customer?: {
+      id: string
+      name: string
+      email: string
+    }
+  }
+}
 
 export default function PaymentsPage() {
-  const { t, language } = useLanguage()
-  const { payments, loading, error, fetchPayments } = usePayments()
+  const { t } = useLanguage()
+  const [payments, setPayments] = useState<Payment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState('')
-  const [sortField, setSortField] = useState('paymentDate')
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('all')
+  const [sortField, setSortField] = useState<'paymentDate' | 'amount' | 'invoiceNumber'>('paymentDate')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [createFormData, setCreateFormData] = useState({
+    invoiceId: '',
+    amount: '',
+    paymentDate: new Date().toISOString().split('T')[0],
+    paymentMethod: 'CASH',
+    reference: '',
+    notes: ''
+  })
+  const [isCreating, setIsCreating] = useState(false)
 
+  // Fetch payments data
   useEffect(() => {
     fetchPayments()
-  }, [fetchPayments])
+    fetchInvoices()
+  }, [])
 
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortDirection('asc')
+  const fetchPayments = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/payments', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        setPayments(data.data || [])
+      } else {
+        setError(data.error || 'Failed to fetch payments')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const filteredAndSortedPayments = React.useMemo(() => {
-    let filtered = payments || []
+  const fetchInvoices = async () => {
+    try {
+      const response = await fetch('/api/invoices', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        setInvoices(data.data || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch invoices:', err)
+    }
+  }
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter((payment: any) =>
-        payment.invoice?.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.invoice?.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const handleCreatePayment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!createFormData.invoiceId || !createFormData.amount) {
+      alert('Please fill in required fields')
+      return
+    }
+
+    try {
+      setIsCreating(true)
+      const response = await fetch('/api/payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          invoiceId: createFormData.invoiceId,
+          amount: parseFloat(createFormData.amount),
+          paymentDate: createFormData.paymentDate,
+          paymentMethod: createFormData.paymentMethod,
+          reference: createFormData.reference || undefined,
+          notes: createFormData.notes || undefined,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setShowCreateForm(false)
+        setCreateFormData({
+          invoiceId: '',
+          amount: '',
+          paymentDate: new Date().toISOString().split('T')[0],
+          paymentMethod: 'CASH',
+          reference: '',
+          notes: ''
+        })
+        fetchPayments() // Refresh the list
+      } else {
+        alert(data.error || 'Failed to create payment')
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  // Filter and sort payments
+  const filteredAndSortedPayments = payments
+    .filter(payment => {
+      const matchesSearch = 
+        payment.invoice?.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        payment.invoice?.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         payment.reference?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
-
-    // Apply payment method filter
-    if (paymentMethodFilter && paymentMethodFilter !== 'all') {
-      filtered = filtered.filter((payment: any) => payment.paymentMethod === paymentMethodFilter)
-    }
-
-    // Apply sorting
-    filtered.sort((a: any, b: any) => {
-      let aValue = a[sortField]
-      let bValue = b[sortField]
-
-      // Handle nested object sorting
-      if (sortField === 'invoice') {
+      
+      const matchesMethod = paymentMethodFilter === 'all' || payment.paymentMethod === paymentMethodFilter
+      
+      return matchesSearch && matchesMethod
+    })
+    .sort((a, b) => {
+      let aValue: any, bValue: any
+      
+      if (sortField === 'paymentDate') {
+        aValue = new Date(a.paymentDate)
+        bValue = new Date(b.paymentDate)
+      } else if (sortField === 'amount') {
+        aValue = a.amount
+        bValue = b.amount
+      } else if (sortField === 'invoiceNumber') {
         aValue = a.invoice?.invoiceNumber || ''
         bValue = b.invoice?.invoiceNumber || ''
       }
-
-      // Handle date sorting
-      if (aValue instanceof Date && bValue instanceof Date) {
-        aValue = aValue.getTime()
-        bValue = bValue.getTime()
-      }
-
+      
       if (sortDirection === 'asc') {
         return aValue > bValue ? 1 : -1
       } else {
@@ -90,185 +180,467 @@ export default function PaymentsPage() {
       }
     })
 
-    return filtered
-  }, [payments, searchTerm, paymentMethodFilter, sortField, sortDirection])
+  const handleSort = (field: 'paymentDate' | 'amount' | 'invoiceNumber') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('desc')
+    }
+  }
 
-  const formatDate = (date: string | Date) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date
-    return format(dateObj, 'dd/MM/yyyy', { locale: dateLocales[language as keyof typeof dateLocales] })
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount)
+  }
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  const getPaymentMethodColor = (method: string) => {
+    const colors: Record<string, string> = {
+      'CASH': 'bg-green-100 text-green-800',
+      'BANK_TRANSFER': 'bg-blue-100 text-blue-800',
+      'CREDIT_CARD': 'bg-purple-100 text-purple-800',
+      'DEBIT_CARD': 'bg-yellow-100 text-yellow-800',
+      'CHECK': 'bg-gray-100 text-gray-800',
+      'DIGITAL_WALLET': 'bg-indigo-100 text-indigo-800',
+      'OTHER': 'bg-red-100 text-red-800'
+    }
+    return colors[method] || 'bg-gray-100 text-gray-800'
+  }
+
+  const handleView = (payment: Payment) => {
+    setSelectedPayment(payment)
+    setShowViewModal(true)
+  }
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) {
+      return (
+        <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+      )
+    }
+    
+    return sortDirection === 'asc' ? (
+      <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+      </svg>
+    ) : (
+      <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    )
   }
 
   if (loading) {
     return (
-      <AuthGuard>
-        <Layout>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-lg">Loading...</div>
-          </div>
-        </Layout>
-      </AuthGuard>
+      <PageTemplate
+        title={t('payment.title')}
+        description={t('payment.payments')}
+        showCreateButton={false}
+      >
+        <LoadingSpinner />
+      </PageTemplate>
     )
   }
 
   if (error) {
     return (
-      <AuthGuard>
-        <Layout>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-red-500">Error: {error}</div>
-          </div>
-        </Layout>
-      </AuthGuard>
+      <PageTemplate
+        title={t('payment.title')}
+        description={t('payment.payments')}
+        showCreateButton={false}
+      >
+        <ErrorState error={error} onRetry={fetchPayments} />
+      </PageTemplate>
     )
   }
 
   return (
-    <Layout>
-        <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {t('payment.title')}
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {t('payment.payments')}
-              </p>
-            </div>
-            <Button className="flex items-center gap-2">
-              <PlusIcon className="h-5 w-5" />
-              {t('payment.createPayment')}
-            </Button>
-          </div>
+    <PageTemplate
+      title={t('payment.title')}
+      description={t('payment.payments')}
+      showCreateButton={true}
+      createButtonText={t('payment.createPayment')}
+      onCreateClick={() => setShowCreateForm(true)}
+      itemCount={filteredAndSortedPayments.length}
+      itemName="payments"
+    >
 
           {/* Filters */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1">
-                <div className="relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    placeholder={t('common.search')}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
+                <input
+                  type="text"
+                  placeholder="Search payments..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+              
+              <div>
+                <select 
+                  value={paymentMethodFilter}
+                  onChange={(e) => setPaymentMethodFilter(e.target.value)}
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                >
+                  <option value="all">{t('common.all')}</option>
+                  <option value="CASH">{t('invoice.cash')}</option>
+                  <option value="BANK_TRANSFER">{t('invoice.bankTransfer')}</option>
+                  <option value="CREDIT_CARD">{t('invoice.creditCard')}</option>
+                  <option value="DEBIT_CARD">{t('invoice.debitCard')}</option>
+                  <option value="CHECK">{t('invoice.check')}</option>
+                  <option value="DIGITAL_WALLET">{t('invoice.digitalWallet')}</option>
+                  <option value="OTHER">{t('invoice.otherPayment')}</option>
+                </select>
               </div>
 
-              {/* Payment Method Filter */}
-              <div className="w-full sm:w-48">
-                <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('payment.paymentMethod')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('common.all')}</SelectItem>
-                    <SelectItem value="CASH">{t('payment.cash')}</SelectItem>
-                    <SelectItem value="BANK_TRANSFER">{t('payment.bankTransfer')}</SelectItem>
-                    <SelectItem value="CREDIT_CARD">{t('payment.creditCard')}</SelectItem>
-                    <SelectItem value="DEBIT_CARD">{t('payment.debitCard')}</SelectItem>
-                    <SelectItem value="CHECK">{t('payment.check')}</SelectItem>
-                    <SelectItem value="DIGITAL_WALLET">{t('payment.digitalWallet')}</SelectItem>
-                    <SelectItem value="OTHER">{t('payment.other')}</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setSearchTerm('')
+                    setPaymentMethodFilter('all')
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  {t('common.clearFilters')}
+                </button>
+                <button
+                  onClick={() => fetchPayments()}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Table */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {/* Payments Table */}
+          <div className="bg-white shadow rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                      onClick={() => handleSort('invoice')}
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th 
+                      onClick={() => handleSort('invoiceNumber')}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     >
-                      {t('invoice.invoiceNumber')}
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                      <div className="flex items-center gap-1">
+                        {t('invoice.invoiceNumber')}
+                        <SortIcon field="invoiceNumber" />
+                      </div>
+                    </th>
+                    <th 
                       onClick={() => handleSort('paymentDate')}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     >
-                      {t('payment.paymentDate')}
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                      <div className="flex items-center gap-1">
+                        {t('payment.paymentDate')}
+                        <SortIcon field="paymentDate" />
+                      </div>
+                    </th>
+                    <th 
                       onClick={() => handleSort('amount')}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     >
-                      {t('payment.amount')}
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                      onClick={() => handleSort('paymentMethod')}
-                    >
+                      <div className="flex items-center gap-1">
+                        {t('payment.amount')}
+                        <SortIcon field="amount" />
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('payment.paymentMethod')}
-                    </TableHead>
-                    <TableHead>{t('payment.reference')}</TableHead>
-                    <TableHead>{t('customers.title')}</TableHead>
-                    <TableHead className="text-right">{t('common.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('payment.reference')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('workOrders.customer')}
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('common.actions')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
                   {filteredAndSortedPayments.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                    <tr>
+                      <td colSpan={7} className="px-6 py-4 whitespace-nowrap text-center py-8">
                         <div className="flex flex-col items-center gap-2">
-                          <CreditCardIcon className="h-12 w-12 text-gray-400" />
-                          <p className="text-gray-500">{t('payment.noPayments')}</p>
-                          <Button variant="outline" size="sm">
-                            {t('payment.createPayment')}
-                          </Button>
+                          <svg className="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          </svg>
+                          <p className="text-gray-500">
+                            {searchTerm || paymentMethodFilter !== 'all' 
+                              ? 'No payments match your filters' 
+                              : 'No payments found'
+                            }
+                          </p>
+                          <button 
+                            onClick={() => setShowCreateForm(true)}
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
+                            Create Payment
+                          </button>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ) : (
-                    filteredAndSortedPayments.map((payment: any) => (
-                      <TableRow key={payment.id}>
-                        <TableCell className="font-medium">
-                          {payment.invoice?.invoiceNumber}
-                        </TableCell>
-                        <TableCell>{formatDate(payment.paymentDate)}</TableCell>
-                        <TableCell className="font-medium">
+                    filteredAndSortedPayments.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {payment.invoice?.invoiceNumber || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(payment.paymentDate)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {formatCurrency(payment.amount)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {getPaymentMethodDisplayName(payment.paymentMethod)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentMethodColor(payment.paymentMethod)}`}>
+                            {payment.paymentMethod.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {payment.reference || '-'}
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div>
-                            <div className="font-medium">{payment.invoice?.customer?.name}</div>
-                            <div className="text-sm text-gray-500">{payment.invoice?.customer?.email}</div>
+                            <div className="font-medium">{payment.invoice?.customer?.name || 'Unknown'}</div>
+                            <div className="text-sm text-gray-500">{payment.invoice?.customer?.email || ''}</div>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right">
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="outline" size="sm">
-                              {t('common.view')}
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              {t('common.edit')}
-                            </Button>
+                            <button 
+                              onClick={() => handleView(payment)}
+                              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                              View
+                            </button>
+                            <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                              Edit
+                            </button>
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     ))
                   )}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+      {/* Create Payment Modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Create New Payment</h3>
+                <button
+                  onClick={() => setShowCreateForm(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <form onSubmit={handleCreatePayment} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Invoice *</label>
+                  <select
+                    value={createFormData.invoiceId}
+                    onChange={(e) => setCreateFormData({...createFormData, invoiceId: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    required
+                  >
+                    <option value="">Select an invoice</option>
+                    {invoices.map((invoice) => (
+                      <option key={invoice.id} value={invoice.id}>
+                        {invoice.invoiceNumber} - {invoice.customer?.name} (${invoice.totalAmount})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Amount *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={createFormData.amount}
+                    onChange={(e) => setCreateFormData({...createFormData, amount: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Payment Date</label>
+                  <input
+                    type="date"
+                    value={createFormData.paymentDate}
+                    onChange={(e) => setCreateFormData({...createFormData, paymentDate: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Payment Method</label>
+                  <select
+                    value={createFormData.paymentMethod}
+                    onChange={(e) => setCreateFormData({...createFormData, paymentMethod: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  >
+                    <option value="CASH">Cash</option>
+                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                    <option value="CREDIT_CARD">Credit Card</option>
+                    <option value="DEBIT_CARD">Debit Card</option>
+                    <option value="CHECK">Check</option>
+                    <option value="DIGITAL_WALLET">Digital Wallet</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Reference</label>
+                  <input
+                    type="text"
+                    value={createFormData.reference}
+                    onChange={(e) => setCreateFormData({...createFormData, reference: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Transaction reference"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Notes</label>
+                  <textarea
+                    value={createFormData.notes}
+                    onChange={(e) => setCreateFormData({...createFormData, notes: e.target.value})}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Additional notes"
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-2 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateForm(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCreating}
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {isCreating ? 'Creating...' : 'Create Payment'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
-      </Layout>
+      )}
+
+      {/* View Payment Modal */}
+      {showViewModal && selectedPayment && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Payment Details</h3>
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Invoice Number</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedPayment.invoice?.invoiceNumber || 'N/A'}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Amount</label>
+                  <p className="mt-1 text-sm text-gray-900 font-semibold">{formatCurrency(selectedPayment.amount)}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Payment Date</label>
+                  <p className="mt-1 text-sm text-gray-900">{formatDate(selectedPayment.paymentDate)}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Payment Method</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedPayment.paymentMethod.replace('_', ' ')}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Reference</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedPayment.reference || 'No reference'}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Customer</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedPayment.invoice?.customer?.name || 'Unknown'}</p>
+                  {selectedPayment.invoice?.customer?.email && (
+                    <p className="text-sm text-gray-500">{selectedPayment.invoice.customer.email}</p>
+                  )}
+                </div>
+                
+                {selectedPayment.notes && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Notes</label>
+                    <p className="mt-1 text-sm text-gray-900">{selectedPayment.notes}</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </PageTemplate>
   )
 }

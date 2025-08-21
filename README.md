@@ -80,6 +80,21 @@
 - **Type Safety**: TypeScript strict mode
 - **System Health**: Automated health checks
 
+### 🎨 ระบบ UI Template
+- **PageTemplate**: เทมเพลตหลักสำหรับหน้าต่างๆ
+- **PageTemplateWithI18n**: เทมเพลตที่รองรับ 3 ภาษาตั้งแต่ต้น
+- **Consistent Design**: UI ที่สอดคล้องกันทุกหน้า
+- **Reusable Components**: Components ที่ใช้ซ้ำได้
+- **Action Buttons**: ปุ่ม View/Edit ที่ใช้งานง่าย
+- **Responsive Layout**: ทำงานได้ทุกขนาดหน้าจอ
+
+### 🚀 ระบบการพัฒนาที่รองรับ 3 ภาษา
+- **Create Page Script**: สร้างหน้าใหม่พร้อมคำแปลอัตโนมัติ
+- **Translation Helper**: จัดการคำแปลและ validation
+- **Auto Translation**: สร้างคำแปล 3 ภาษา (ไทย, อังกฤษ, จีน) อัตโนมัติ
+- **Development Guide**: คู่มือการพัฒนาครบถ้วน
+- **Template System**: ระบบเทมเพลตที่ใช้งานง่าย
+
 ## 🛠️ เทคโนโลยีที่ใช้
 
 <table>
@@ -247,7 +262,10 @@ src/
 │       └── health/        # Health Check API
 ├── components/            # React Components
 │   ├── layout/           # Layout Components
-│   ├── ui/               # UI Components (Radix UI)
+│   ├── ui/               # UI Components (Radix UI + PageTemplate)
+│   │   └── PageTemplate.tsx  # Main page template system
+│   ├── templates/        # Template Components
+│   │   └── PageTemplateWithI18n.tsx  # Template with i18n support
 │   ├── forms/            # Form Components
 │   └── auth/             # Authentication Components
 ├── contexts/             # React Contexts
@@ -268,7 +286,8 @@ src/
     ├── validation.ts     # Data validation
     ├── middleware.ts     # Server middleware
     ├── systemHealth.ts   # System health checks
-    └── testUtils.ts      # Testing utilities
+    ├── testUtils.ts      # Testing utilities
+    └── translationHelper.ts  # Translation management utilities
 ```
 
 ## การใช้งาน
@@ -281,6 +300,68 @@ src/
 
 สามารถเปลี่ยนภาษาได้จากเมนูด้านซ้าย
 
+### 🚀 การสร้างหน้าใหม่ด้วยระบบรองรับ 3 ภาษา
+
+#### สร้างหน้าใหม่ใน 1 นาที:
+```bash
+# สร้างหน้า Suppliers
+npm run create-page suppliers Suppliers /api/suppliers
+
+# สร้างหน้า Inventory  
+npm run create-page inventory Inventory /api/inventory
+
+# สร้างหน้า Reports
+npm run create-page reports Reports /api/reports
+```
+
+#### ผลลัพธ์ที่ได้:
+- ✅ ไฟล์ `src/app/suppliers/page.tsx`
+- ✅ ไฟล์ `src/app/api/suppliers/route.ts`
+- ✅ คำแปลใน `src/locales/en.ts`, `th.ts`, `zh.ts`
+- ✅ TypeScript interfaces
+- ✅ CRUD operations พร้อมใช้งาน
+- ✅ Search และ Filter
+- ✅ Responsive UI
+
+#### การปรับแต่งหน้า:
+```tsx
+// src/app/suppliers/page.tsx
+export default function SuppliersPage() {
+  return (
+    <PageTemplateWithI18n<Supplier>
+      pageKey="suppliers"
+      titleKey="suppliers.title"
+      descriptionKey="suppliers.description"
+      apiEndpoint="/api/suppliers"
+      columns={[
+        { key: 'name', labelKey: 'suppliers.fields.name', sortable: true },
+        { key: 'email', labelKey: 'suppliers.fields.email', sortable: true },
+        { key: 'phone', labelKey: 'suppliers.fields.phone' }
+      ]}
+      formFields={[
+        { key: 'name', labelKey: 'suppliers.fields.name', type: 'text', required: true },
+        { key: 'email', labelKey: 'suppliers.fields.email', type: 'email', required: true },
+        { key: 'phone', labelKey: 'suppliers.fields.phone', type: 'text' }
+      ]}
+      filters={[
+        {
+          key: 'status',
+          labelKey: 'suppliers.fields.status',
+          type: 'select',
+          options: [
+            { value: 'active', labelKey: 'suppliers.statuses.active' },
+            { value: 'inactive', labelKey: 'suppliers.statuses.inactive' }
+          ]
+        }
+      ]}
+    />
+  )
+}
+```
+
+#### ดูคู่มือการพัฒนาครบถ้วนได้ที่:
+📖 [Development Guide](./docs/DEVELOPMENT_GUIDE.md)
+
 ### การเพิ่มข้อมูล
 1. **ลูกค้า**: ไปที่หน้า Customers → กดปุ่ม "เพิ่มลูกค้า"
 2. **ช่างซ่อม**: ไปที่หน้า Technicians → กดปุ่ม "เพิ่มช่างซ่อม"
@@ -291,6 +372,27 @@ src/
 
 ### การจัดการข้อมูล
 - ใช้ปุ่มแก้ไข (ดินสอ) เพื่อแก้ไขข้อมูล
+
+### 🎨 ระบบ UI Template
+ระบบใช้ `PageTemplate` เป็นเทมเพลตหลักสำหรับหน้าต่างๆ เพื่อให้ UI สอดคล้องกัน:
+
+#### หน้าที่ใช้เทมเพลตแล้ว
+- ✅ **Payments** (`/payments`) - ต้นแบบ
+- ✅ **Invoices** (`/invoices`) - ปรับปรุงแล้ว
+
+#### หน้าที่กำลังปรับปรุง
+- 🔄 **Work Orders** (`/work-orders`)
+- 🔄 **Customers** (`/customers`)
+- 🔄 **Technicians** (`/technicians`)
+- 🔄 **Miner Models** (`/miners`)
+- 🔄 **Dashboard** (`/dashboard`)
+
+#### คุณสมบัติของเทมเพลต
+- **Consistent Layout**: โครงสร้างหน้าเหมือนกันทุกหน้า
+- **Action Buttons**: ปุ่ม View/Edit ที่ใช้งานง่าย
+- **Filter & Search**: ระบบค้นหาและกรองข้อมูล
+- **Sorting**: การเรียงลำดับข้อมูล
+- **Responsive Design**: ทำงานได้ทุกขนาดหน้าจอ
 - ใช้ปุ่มลบ (ถังขยะ) เพื่อลบข้อมูล
 - ใช้ช่องค้นหาเพื่อกรองข้อมูล
 - ใช้ dropdown filters เพื่อกรองตามสถานะ
@@ -405,6 +507,9 @@ docker-compose up -d
 - **🔍 Code Quality**: 0 errors, minimal warnings
 - **📦 Bundle Size**: Optimized for performance
 - **🌐 API Endpoints**: 20+ endpoints with standardized responses
+- **🎨 UI Templates**: PageTemplate system for consistent design
+- **🌐 i18n System**: Complete 3-language support (Thai, English, Chinese)
+- **🚀 Development Tools**: Automated page creation with translation support
 
 ---
 

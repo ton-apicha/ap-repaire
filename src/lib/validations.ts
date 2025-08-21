@@ -131,8 +131,8 @@ export const invoiceItemSchema = z.object({
 export const createInvoiceSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
   workOrderId: z.string().optional(),
-  issueDate: z.date(),
-  dueDate: z.date(),
+  issueDate: z.string().or(z.date()),
+  dueDate: z.string().or(z.date()),
   items: z.array(invoiceItemSchema).min(1, 'At least one item is required'),
   notes: z.string().optional(),
   terms: z.string().optional(),
@@ -155,7 +155,7 @@ export const createPaymentSchema = z.object({
   invoiceId: z.string().min(1, 'Invoice is required'),
   amount: z.number().positive('Amount must be positive'),
   paymentMethod: z.enum(['CASH', 'BANK_TRANSFER', 'CREDIT_CARD', 'DEBIT_CARD', 'CHECK', 'DIGITAL_WALLET', 'OTHER']),
-  paymentDate: z.date().optional(),
+  paymentDate: z.string().or(z.date()).optional(),
   reference: z.string().optional(),
   notes: z.string().optional(),
 })

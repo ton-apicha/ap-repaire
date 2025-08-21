@@ -6,6 +6,7 @@ import Layout from '@/components/layout/Layout'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, EyeIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
+import { generateWorkId, getTodayDateString, countWorkOrdersForDate } from '@/lib/utils'
 
 interface WorkOrder {
   id: string
@@ -72,10 +73,21 @@ export default function WorkOrders() {
     priority: 'MEDIUM',
     estimatedCost: ''
   })
+  const [generatedOrderNumber, setGeneratedOrderNumber] = useState('')
 
   useEffect(() => {
     fetchData()
   }, [])
+
+  // Update generated order number when modal opens
+  useEffect(() => {
+    if (showAddModal) {
+      const todayWorkOrderCount = getTodayWorkOrderCount()
+      const nextWorkOrderNumber = todayWorkOrderCount + 1
+      const newOrderNumber = generateWorkId(nextWorkOrderNumber)
+      setGeneratedOrderNumber(newOrderNumber)
+    }
+  }, [showAddModal, workOrders])
 
   const fetchData = async () => {
     try {
@@ -111,6 +123,12 @@ export default function WorkOrders() {
     }))
   }
 
+  // Function to count work orders for today
+  const getTodayWorkOrderCount = (): number => {
+    const todayString = getTodayDateString()
+    return countWorkOrdersForDate(workOrders, todayString)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -122,6 +140,7 @@ export default function WorkOrders() {
         },
         body: JSON.stringify({
           ...formData,
+          orderNumber: generatedOrderNumber,
           estimatedCost: formData.estimatedCost ? parseFloat(formData.estimatedCost) : null
         }),
       })
@@ -321,6 +340,9 @@ export default function WorkOrders() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{t('workOrders.title')}</h1>
             <p className="mt-2 text-gray-600">{t('workOrders.workOrderList')}</p>
+            <div className="mt-2 text-sm text-gray-500">
+              <span className="font-medium">รูปแบบเลขที่ใบงาน:</span> {generateWorkId(1)} (ตัวอย่าง: วันที่ 21/08/2025, ใบงานที่ 1)
+            </div>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
@@ -542,6 +564,28 @@ export default function WorkOrders() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
+                  {/* Generated Order Number Display */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="block text-sm font-medium text-blue-800">
+                          เลขที่ใบงานที่สร้างขึ้น
+                        </label>
+                        <p className="text-sm text-blue-600 mt-1">
+                          เลขที่ใบงานจะถูกสร้างอัตโนมัติตามวันที่และลำดับ
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-blue-800 font-mono">
+                          {generatedOrderNumber}
+                        </span>
+                        <p className="text-xs text-blue-600 mt-1">
+                          รูปแบบ: YYMMDD + ลำดับ 3 หลัก
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">

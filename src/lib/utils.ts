@@ -126,3 +126,50 @@ export function copyToClipboard(text: string): Promise<void> {
   document.body.removeChild(textArea)
   return Promise.resolve()
 }
+
+/**
+ * Generate work order ID based on current date and work number
+ * Format: YYMMDD + 3-digit work number (e.g., 250821001)
+ * @param workNumber - The work order number for the day
+ * @returns Formatted work order ID
+ */
+export function generateWorkId(workNumber: number): string {
+  // Get the current date
+  const today = new Date()
+
+  // Format the date as YYMMDD
+  const year = today.getFullYear().toString().slice(-2)
+  const month = (today.getMonth() + 1).toString().padStart(2, '0')
+  const day = today.getDate().toString().padStart(2, '0')
+  const datePart = `${year}${month}${day}`
+
+  // Format the work number as a 3-digit string with leading zeros
+  const workNumberPart = workNumber.toString().padStart(3, '0')
+
+  // Combine the parts to form the final ID
+  const workId = `${datePart}${workNumberPart}`
+
+  return workId
+}
+
+/**
+ * Get today's date in YYYY-MM-DD format for comparison
+ * @returns Today's date string
+ */
+export function getTodayDateString(): string {
+  const today = new Date()
+  return today.toISOString().split('T')[0]
+}
+
+/**
+ * Count work orders for a specific date
+ * @param workOrders - Array of work orders
+ * @param dateString - Date string in YYYY-MM-DD format
+ * @returns Number of work orders for the specified date
+ */
+export function countWorkOrdersForDate(workOrders: any[], dateString: string): number {
+  return workOrders.filter(order => {
+    const orderDate = new Date(order.createdAt).toISOString().split('T')[0]
+    return orderDate === dateString
+  }).length
+}

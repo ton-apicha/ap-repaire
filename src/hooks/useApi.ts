@@ -38,7 +38,9 @@ export function useApi<T = any>(options: UseApiOptions<T> = {}) {
             toast.success(options.successMessage || 'Operation completed successfully')
           }
           
-          options.onSuccess?.(response.data)
+          if (response.data) {
+            options.onSuccess?.(response.data)
+          }
         } else {
           const errorMessage = response.error || options.errorMessage || 'An error occurred'
           setState(prev => ({ ...prev, error: errorMessage, loading: false }))

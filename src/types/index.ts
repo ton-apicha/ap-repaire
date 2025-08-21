@@ -83,3 +83,29 @@ export interface Language {
   name: string;
   flag: string;
 }
+
+// NextAuth type declarations
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role: 'ADMIN' | 'MANAGER' | 'TECHNICIAN' | 'USER';
+    }
+  }
+
+  interface User {
+    id: string;
+    email: string;
+    name: string;
+    role: 'ADMIN' | 'MANAGER' | 'TECHNICIAN' | 'USER';
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: 'ADMIN' | 'MANAGER' | 'TECHNICIAN' | 'USER';
+  }
+}

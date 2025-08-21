@@ -173,3 +173,129 @@ export function countWorkOrdersForDate(workOrders: any[], dateString: string): n
     return orderDate === dateString
   }).length
 }
+
+/**
+ * Generate invoice number based on current date and invoice number
+ * Format: INV + YYMMDD + 3-digit invoice number (e.g., INV250821001)
+ * @param invoiceNumber - The invoice number for the day
+ * @returns Formatted invoice number
+ */
+export function generateInvoiceNumber(invoiceNumber: number): string {
+  // Get the current date
+  const today = new Date()
+
+  // Format the date as YYMMDD
+  const year = today.getFullYear().toString().slice(-2)
+  const month = (today.getMonth() + 1).toString().padStart(2, '0')
+  const day = today.getDate().toString().padStart(2, '0')
+  const datePart = `${year}${month}${day}`
+
+  // Format the invoice number as a 3-digit string with leading zeros
+  const invoiceNumberPart = invoiceNumber.toString().padStart(3, '0')
+
+  // Combine the parts to form the final invoice number
+  const invoiceId = `INV${datePart}${invoiceNumberPart}`
+
+  return invoiceId
+}
+
+/**
+ * Calculate invoice totals
+ * @param items - Array of invoice items
+ * @param taxRate - Tax rate as percentage (0-100)
+ * @param discountAmount - Discount amount
+ * @returns Object with calculated totals
+ */
+export function calculateInvoiceTotals(
+  items: { quantity: number; unitPrice: number }[],
+  taxRate: number = 0,
+  discountAmount: number = 0
+) {
+  const subtotal = items.reduce((sum, item) => {
+    return sum + (item.quantity * item.unitPrice)
+  }, 0)
+
+  const taxAmount = (subtotal * taxRate) / 100
+  const totalBeforeDiscount = subtotal + taxAmount
+  const totalAmount = totalBeforeDiscount - discountAmount
+
+  return {
+    subtotal,
+    taxAmount,
+    discountAmount,
+    totalAmount: Math.max(0, totalAmount), // Ensure total is not negative
+  }
+}
+
+/**
+ * Calculate invoice balance
+ * @param totalAmount - Total invoice amount
+ * @param paidAmount - Amount already paid
+ * @returns Balance amount
+ */
+export function calculateInvoiceBalance(totalAmount: number, paidAmount: number): number {
+  return Math.max(0, totalAmount - paidAmount)
+}
+
+/**
+ * Get invoice status based on due date and payment status
+ * @param dueDate - Invoice due date
+ * @param totalAmount - Total invoice amount
+ * @param paidAmount - Amount already paid
+ * @param currentStatus - Current invoice status
+ * @returns Updated invoice status
+ */
+export function getInvoiceStatus(
+  dueDate: Date,
+  totalAmount: number,
+  paidAmount: number,
+  currentStatus: string
+): string {
+  const today = new Date()
+  const isOverdue = today > dueDate
+  const balance = calculateInvoiceBalance(totalAmount, paidAmount)
+
+  if (currentStatus === 'CANCELLED') return 'CANCELLED'
+  if (balance === 0) return 'PAID'
+  if (isOverdue) return 'OVERDUE'
+  if (paidAmount > 0 && balance > 0) return 'PARTIAL'
+  if (currentStatus === 'SENT') return 'SENT'
+  return 'DRAFT'
+}
+
+
+
+/**
+ * Get payment method display name
+ * @param method - Payment method enum value
+ * @returns Display name
+ */
+export function getPaymentMethodDisplayName(method: string): string {
+  const methodNames: Record<string, string> = {
+    CASH: 'เงินสด',
+    BANK_TRANSFER: 'โอนเงิน',
+    CREDIT_CARD: 'บัตรเครดิต',
+    DEBIT_CARD: 'บัตรเดบิต',
+    CHECK: 'เช็ค',
+    DIGITAL_WALLET: 'กระเป๋าเงินดิจิทัล',
+    OTHER: 'อื่นๆ',
+  }
+  return methodNames[method] || method
+}
+
+/**
+ * Get invoice status display name and color
+ * @param status - Invoice status
+ * @returns Object with display name and color
+ */
+export function getInvoiceStatusDisplay(status: string): { name: string; color: string } {
+  const statusConfig: Record<string, { name: string; color: string }> = {
+    DRAFT: { name: 'ร่าง', color: 'bg-gray-100 text-gray-800' },
+    SENT: { name: 'ส่งแล้ว', color: 'bg-blue-100 text-blue-800' },
+    PAID: { name: 'ชำระแล้ว', color: 'bg-green-100 text-green-800' },
+    OVERDUE: { name: 'เกินกำหนด', color: 'bg-red-100 text-red-800' },
+    CANCELLED: { name: 'ยกเลิก', color: 'bg-gray-100 text-gray-800' },
+    PARTIAL: { name: 'ชำระบางส่วน', color: 'bg-yellow-100 text-yellow-800' },
+  }
+  return statusConfig[status] || { name: status, color: 'bg-gray-100 text-gray-800' }
+}

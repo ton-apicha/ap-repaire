@@ -1,6 +1,6 @@
 import { toast } from 'react-hot-toast'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3007'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
 export interface ApiResponse<T = any> {
   success: boolean
@@ -38,6 +38,7 @@ class ApiClient {
 
     const config: RequestInit = {
       ...options,
+      credentials: 'include', // Include cookies for authentication
       headers: {
         ...defaultHeaders,
         ...options.headers,
@@ -330,6 +331,147 @@ export class ApiService {
       return response
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to delete user'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  // Invoice API
+  static async getInvoices(): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get('/api/invoices')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch invoices'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async getInvoice(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get(`/api/invoices/${id}`)
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch invoice'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async createInvoice(data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.post('/api/invoices', data)
+      toast.success('Invoice created successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create invoice'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async updateInvoice(id: string, data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.put(`/api/invoices/${id}`, data)
+      toast.success('Invoice updated successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update invoice'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async deleteInvoice(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.delete(`/api/invoices/${id}`)
+      toast.success('Invoice deleted successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete invoice'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async sendInvoice(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.post(`/api/invoices/${id}/send`)
+      toast.success('Invoice sent successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to send invoice'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async generateInvoicePDF(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get(`/api/invoices/${id}/pdf`)
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to generate PDF'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  // Payment API
+  static async getPayments(): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get('/api/payments')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch payments'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async getPayment(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get(`/api/payments/${id}`)
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch payment'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async createPayment(data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.post('/api/payments', data)
+      toast.success('Payment recorded successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to record payment'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async updatePayment(id: string, data: any): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.put(`/api/payments/${id}`, data)
+      toast.success('Payment updated successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update payment'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
+  static async deletePayment(id: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.delete(`/api/payments/${id}`)
+      toast.success('Payment deleted successfully')
+      return response
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete payment'
       toast.error(message)
       return { success: false, error: message }
     }

@@ -69,6 +69,86 @@ export interface WorkOrder {
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
+  invoices?: Invoice[];
+}
+
+// Invoice System Types
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  customerId: string;
+  customer: Customer;
+  workOrderId?: string;
+  workOrder?: WorkOrder;
+  status: 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED' | 'PARTIAL';
+  issueDate: Date;
+  dueDate: Date;
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  totalAmount: number;
+  paidAmount: number;
+  balanceAmount: number;
+  notes?: string;
+  terms?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+  createdByUser: User;
+  items: InvoiceItem[];
+  payments: Payment[];
+}
+
+export interface InvoiceItem {
+  id: string;
+  invoiceId: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  type: 'SERVICE' | 'PARTS' | 'LABOR' | 'OTHER';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Payment {
+  id: string;
+  invoiceId: string;
+  amount: number;
+  paymentDate: Date;
+  paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CHECK' | 'DIGITAL_WALLET' | 'OTHER';
+  reference?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateInvoiceData {
+  customerId: string;
+  workOrderId?: string;
+  issueDate: Date;
+  dueDate: Date;
+  items: CreateInvoiceItemData[];
+  notes?: string;
+  terms?: string;
+  taxRate?: number;
+  discountAmount?: number;
+}
+
+export interface CreateInvoiceItemData {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  type: 'SERVICE' | 'PARTS' | 'LABOR' | 'OTHER';
+}
+
+export interface CreatePaymentData {
+  invoiceId: string;
+  amount: number;
+  paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CHECK' | 'DIGITAL_WALLET' | 'OTHER';
+  paymentDate?: Date;
+  reference?: string;
+  notes?: string;
 }
 
 export interface NavigationItem {

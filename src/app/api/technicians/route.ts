@@ -12,11 +12,14 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json(technicians)
+    return NextResponse.json({
+      success: true,
+      data: technicians
+    })
   } catch (error) {
     console.error('Error fetching technicians:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch technicians' },
+      { success: false, error: 'Failed to fetch technicians' },
       { status: 500 }
     )
   }
@@ -30,10 +33,10 @@ export async function POST(request: NextRequest) {
     // Get first user as createdBy (temporary solution)
     const firstUser = await prisma.user.findFirst()
     if (!firstUser) {
-      return NextResponse.json(
-        { error: 'No users found in database' },
-        { status: 400 }
-      )
+          return NextResponse.json(
+      { success: false, error: 'No users found in database' },
+      { status: 400 }
+    )
     }
 
     const technician = await prisma.technician.create({
@@ -48,11 +51,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(technician, { status: 201 })
+    return NextResponse.json({
+      success: true,
+      data: technician
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating technician:', error)
     return NextResponse.json(
-      { error: 'Failed to create technician' },
+      { success: false, error: 'Failed to create technician' },
       { status: 500 }
     )
   }

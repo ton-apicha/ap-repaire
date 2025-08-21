@@ -48,7 +48,7 @@ export default function Miners() {
       const response = await fetch('/api/miners')
       if (response.ok) {
         const data = await response.json()
-        setMinerModels(data)
+        setMinerModels(data.data || [])
       } else {
         toast.error('Failed to fetch miner models')
       }
@@ -82,7 +82,7 @@ export default function Miners() {
 
       if (response.ok) {
         const newMinerModel = await response.json()
-        setMinerModels(prev => [newMinerModel, ...prev])
+        setMinerModels(prev => [newMinerModel.data, ...prev])
         setShowAddModal(false)
         setFormData({
           brand: '',

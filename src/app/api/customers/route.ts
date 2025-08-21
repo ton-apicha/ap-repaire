@@ -12,11 +12,14 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json(customers)
+    return NextResponse.json({
+      success: true,
+      data: customers
+    })
   } catch (error) {
     console.error('Error fetching customers:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch customers' },
+      { success: false, error: 'Failed to fetch customers' },
       { status: 500 }
     )
   }
@@ -30,10 +33,10 @@ export async function POST(request: NextRequest) {
     // Get first user as createdBy (temporary solution)
     const firstUser = await prisma.user.findFirst()
     if (!firstUser) {
-      return NextResponse.json(
-        { error: 'No users found in database' },
-        { status: 400 }
-      )
+          return NextResponse.json(
+      { success: false, error: 'No users found in database' },
+      { status: 400 }
+    )
     }
 
     const customer = await prisma.customer.create({
@@ -48,11 +51,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(customer, { status: 201 })
+    return NextResponse.json({
+      success: true,
+      data: customer
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating customer:', error)
     return NextResponse.json(
-      { error: 'Failed to create customer' },
+      { success: false, error: 'Failed to create customer' },
       { status: 500 }
     )
   }

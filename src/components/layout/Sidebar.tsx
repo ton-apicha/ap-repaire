@@ -13,18 +13,11 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ArrowRightOnRectangleIcon,
+  DocumentTextIcon,
+  CreditCardIcon,
 } from '@heroicons/react/24/outline'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { useSession, signOut } from 'next-auth/react'
-
-const navigation = [
-  { name: 'dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'customers', href: '/customers', icon: UsersIcon },
-  { name: 'technicians', href: '/technicians', icon: WrenchScrewdriverIcon },
-  { name: 'workOrders', href: '/work-orders', icon: ClipboardDocumentListIcon },
-  { name: 'miners', href: '/miners', icon: CpuChipIcon },
-  { name: 'admin', href: '/admin', icon: Cog6ToothIcon },
-]
+// import { useSession, signOut } from 'next-auth/react'
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -36,7 +29,19 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage()
-  const { data: session } = useSession()
+  // const { data: session } = useSession()
+  const session = null // TEMPORARILY DISABLED FOR TESTING
+
+  const navigation = [
+    { name: t('dashboard.title'), href: '/dashboard', icon: HomeIcon },
+    { name: t('workOrders.title'), href: '/work-orders', icon: ClipboardDocumentListIcon },
+    { name: t('customers.title'), href: '/customers', icon: UsersIcon },
+    { name: t('technicians.title'), href: '/technicians', icon: WrenchScrewdriverIcon },
+    { name: t('miners.title'), href: '/miners', icon: CpuChipIcon },
+    { name: t('invoice.title'), href: '/invoices', icon: DocumentTextIcon },
+    { name: t('payment.title'), href: '/payments', icon: CreditCardIcon },
+    { name: t('admin.title'), href: '/admin', icon: Cog6ToothIcon },
+  ]
 
   return (
     <div className={`bg-gray-900 text-white transition-all duration-300 flex flex-col h-screen ${collapsed ? 'w-16' : 'w-64'}`}>
@@ -74,7 +79,7 @@ export default function Sidebar() {
               >
                 <item.icon className="h-5 w-5 flex-shrink-0" />
                 {!collapsed && (
-                  <span className="ml-3">{t(`common.${item.name}`)}</span>
+                  <span className="ml-3">{item.name}</span>
                 )}
               </Link>
             )
@@ -109,8 +114,8 @@ export default function Sidebar() {
               </div>
             </div>
             
-            {/* User Info and Sign Out */}
-            {session && (
+            {/* User Info and Sign Out - TEMPORARILY DISABLED */}
+            {/* {session && (
               <div className="space-y-3">
                 <div className="bg-gray-800 rounded-lg p-3">
                   <div className="flex items-center justify-between mb-2">
@@ -130,7 +135,7 @@ export default function Sidebar() {
                   </button>
                 </div>
               </div>
-            )}
+            )} */}
           </>
         ) : (
           /* Collapsed Footer */
@@ -153,8 +158,8 @@ export default function Sidebar() {
               ))}
             </div>
             
-            {/* Sign Out button for collapsed state */}
-            {session && (
+            {/* Sign Out button for collapsed state - TEMPORARILY DISABLED */}
+            {/* {session && (
               <button
                 onClick={() => signOut({ callbackUrl: '/auth/signin' })}
                 className="p-2 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
@@ -162,7 +167,7 @@ export default function Sidebar() {
               >
                 <ArrowRightOnRectangleIcon className="h-4 w-4" />
               </button>
-            )}
+            )} */}
           </div>
         )}
       </div>

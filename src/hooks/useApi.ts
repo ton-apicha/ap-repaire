@@ -231,3 +231,147 @@ export function useUsers() {
     reset,
   }
 }
+
+// Invoice hooks
+export function useInvoices() {
+  const { data: invoices, loading, error, execute, reset } = useApi()
+
+  const fetchInvoices = useCallback(() => {
+    return execute(() => ApiService.getInvoices())
+  }, [execute])
+
+  const createInvoice = useCallback((data: any) => {
+    return execute(() => ApiService.createInvoice(data))
+  }, [execute])
+
+  const updateInvoice = useCallback((id: string, data: any) => {
+    return execute(() => ApiService.updateInvoice(id, data))
+  }, [execute])
+
+  const deleteInvoice = useCallback((id: string) => {
+    return execute(() => ApiService.deleteInvoice(id))
+  }, [execute])
+
+  const sendInvoice = useCallback((id: string) => {
+    return execute(() => ApiService.sendInvoice(id))
+  }, [execute])
+
+  const generateInvoicePDF = useCallback((id: string) => {
+    return execute(() => ApiService.generateInvoicePDF(id))
+  }, [execute])
+
+  return {
+    invoices,
+    loading,
+    error,
+    fetchInvoices,
+    createInvoice,
+    updateInvoice,
+    deleteInvoice,
+    sendInvoice,
+    generateInvoicePDF,
+    reset,
+  }
+}
+
+export function useInvoice(id?: string) {
+  const { data: invoice, loading, error, execute, reset } = useApi()
+
+  const fetchInvoice = useCallback(() => {
+    if (!id) return
+    return execute(() => ApiService.getInvoice(id))
+  }, [execute, id])
+
+  const updateInvoice = useCallback((data: any) => {
+    if (!id) return
+    return execute(() => ApiService.updateInvoice(id, data))
+  }, [execute, id])
+
+  const deleteInvoice = useCallback(() => {
+    if (!id) return
+    return execute(() => ApiService.deleteInvoice(id))
+  }, [execute, id])
+
+  const sendInvoice = useCallback(() => {
+    if (!id) return
+    return execute(() => ApiService.sendInvoice(id))
+  }, [execute, id])
+
+  const generateInvoicePDF = useCallback(() => {
+    if (!id) return
+    return execute(() => ApiService.generateInvoicePDF(id))
+  }, [execute, id])
+
+  return {
+    invoice,
+    loading,
+    error,
+    fetchInvoice,
+    updateInvoice,
+    deleteInvoice,
+    sendInvoice,
+    generateInvoicePDF,
+    reset,
+  }
+}
+
+// Payment hooks
+export function usePayments() {
+  const { data: payments, loading, error, execute, reset } = useApi()
+
+  const fetchPayments = useCallback(() => {
+    return execute(() => ApiService.getPayments())
+  }, [execute])
+
+  const createPayment = useCallback((data: any) => {
+    return execute(() => ApiService.createPayment(data))
+  }, [execute])
+
+  const updatePayment = useCallback((id: string, data: any) => {
+    return execute(() => ApiService.updatePayment(id, data))
+  }, [execute])
+
+  const deletePayment = useCallback((id: string) => {
+    return execute(() => ApiService.deletePayment(id))
+  }, [execute])
+
+  return {
+    payments,
+    loading,
+    error,
+    fetchPayments,
+    createPayment,
+    updatePayment,
+    deletePayment,
+    reset,
+  }
+}
+
+export function usePayment(id?: string) {
+  const { data: payment, loading, error, execute, reset } = useApi()
+
+  const fetchPayment = useCallback(() => {
+    if (!id) return
+    return execute(() => ApiService.getPayment(id))
+  }, [execute, id])
+
+  const updatePayment = useCallback((data: any) => {
+    if (!id) return
+    return execute(() => ApiService.updatePayment(id, data))
+  }, [execute, id])
+
+  const deletePayment = useCallback(() => {
+    if (!id) return
+    return execute(() => ApiService.deletePayment(id))
+  }, [execute, id])
+
+  return {
+    payment,
+    loading,
+    error,
+    fetchPayment,
+    updatePayment,
+    deletePayment,
+    reset,
+  }
+}

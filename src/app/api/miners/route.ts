@@ -9,11 +9,14 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json(minerModels)
+    return NextResponse.json({
+      success: true,
+      data: minerModels
+    })
   } catch (error) {
     console.error('Error fetching miner models:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch miner models' },
+      { success: false, error: 'Failed to fetch miner models' },
       { status: 500 }
     )
   }
@@ -36,11 +39,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(minerModel, { status: 201 })
+    return NextResponse.json({
+      success: true,
+      data: minerModel
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating miner model:', error)
     return NextResponse.json(
-      { error: 'Failed to create miner model' },
+      { success: false, error: 'Failed to create miner model' },
       { status: 500 }
     )
   }

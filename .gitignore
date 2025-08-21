@@ -52,6 +52,25 @@ prisma/dev.db-journal
 # database
 *.db
 *.db-journal
+dev.db
+dev.db-journal
+
+# test reports
+test-*.js
+*-REPORT.md
+API_*.md
+COMPLETE_*.md
+DATABASE_*.md
+ENVIRONMENT_*.md
+FINAL_*.md
+FRONTEND_*.md
+INVOICE_*.md
+LOGIN_*.md
+MINERS_*.md
+NULL_*.md
+PORT_*.md
+PRISMA_*.md
+WEB_*.md
 
 # logs
 *.log

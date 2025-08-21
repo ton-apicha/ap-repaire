@@ -50,7 +50,7 @@ export default function Technicians() {
       const response = await fetch('/api/technicians')
       if (response.ok) {
         const data = await response.json()
-        setTechnicians(data)
+        setTechnicians(data.data || [])
       } else {
         toast.error('Failed to fetch technicians')
       }
@@ -93,7 +93,7 @@ export default function Technicians() {
 
       if (response.ok) {
         const newTechnician = await response.json()
-        setTechnicians(prev => [newTechnician, ...prev])
+        setTechnicians(prev => [newTechnician.data, ...prev])
         setShowAddModal(false)
         setFormData({
           name: '',
@@ -149,7 +149,7 @@ export default function Technicians() {
       if (response.ok) {
         const updatedTechnician = await response.json()
         setTechnicians(prev => prev.map(technician => 
-          technician.id === editingTechnician.id ? updatedTechnician : technician
+          technician.id === editingTechnician.id ? updatedTechnician.data : technician
         ))
         setShowEditModal(false)
         setEditingTechnician(null)

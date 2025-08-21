@@ -50,7 +50,7 @@ export default function Customers() {
       const response = await fetch('/api/customers')
       if (response.ok) {
         const data = await response.json()
-        setCustomers(data)
+        setCustomers(data.data || [])
       } else {
         toast.error('Failed to fetch customers')
       }
@@ -90,7 +90,7 @@ export default function Customers() {
 
       if (response.ok) {
         const newCustomer = await response.json()
-        setCustomers(prev => [newCustomer, ...prev])
+        setCustomers(prev => [newCustomer.data, ...prev])
         setShowAddModal(false)
         setFormData({
           name: '',
@@ -143,7 +143,7 @@ export default function Customers() {
       if (response.ok) {
         const updatedCustomer = await response.json()
         setCustomers(prev => prev.map(customer => 
-          customer.id === editingCustomer.id ? updatedCustomer : customer
+          customer.id === editingCustomer.id ? updatedCustomer.data : customer
         ))
         setShowEditModal(false)
         setEditingCustomer(null)

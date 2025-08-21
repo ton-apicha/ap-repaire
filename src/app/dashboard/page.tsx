@@ -71,10 +71,16 @@ export default function Dashboard() {
         fetch('/api/miners')
       ])
 
-      const customers = await customersRes.json()
-      const technicians = await techniciansRes.json()
-      const workOrders = await workOrdersRes.json()
-      const miners = await minersRes.json()
+      const customersData = await customersRes.json()
+      const techniciansData = await techniciansRes.json()
+      const workOrdersData = await workOrdersRes.json()
+      const minersData = await minersRes.json()
+
+      // Extract data from API responses
+      const customers = customersData.success ? customersData.data || [] : []
+      const technicians = techniciansData.success ? techniciansData.data || [] : []
+      const workOrders = workOrdersData.success ? workOrdersData.data || [] : []
+      const miners = minersData.success ? minersData.data || [] : []
 
       // Calculate stats
       const pendingWorkOrders = workOrders.filter((wo: any) => wo.status === 'PENDING').length

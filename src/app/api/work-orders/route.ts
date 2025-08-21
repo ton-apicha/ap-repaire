@@ -14,11 +14,14 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json(workOrders)
+    return NextResponse.json({
+      success: true,
+      data: workOrders
+    })
   } catch (error) {
     console.error('Error fetching work orders:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch work orders' },
+      { success: false, error: 'Failed to fetch work orders' },
       { status: 500 }
     )
   }
@@ -57,10 +60,10 @@ export async function POST(request: NextRequest) {
     // Get first user as createdBy (temporary solution)
     const firstUser = await prisma.user.findFirst()
     if (!firstUser) {
-      return NextResponse.json(
-        { error: 'No users found in database' },
-        { status: 400 }
-      )
+          return NextResponse.json(
+      { success: false, error: 'No users found in database' },
+      { status: 400 }
+    )
     }
 
     const workOrder = await prisma.workOrder.create({
@@ -83,11 +86,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(workOrder, { status: 201 })
+    return NextResponse.json({
+      success: true,
+      data: workOrder
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating work order:', error)
     return NextResponse.json(
-      { error: 'Failed to create work order' },
+      { success: false, error: 'Failed to create work order' },
       { status: 500 }
     )
   }

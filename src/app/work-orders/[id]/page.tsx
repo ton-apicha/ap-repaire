@@ -269,11 +269,15 @@ export default function WorkOrderDetail() {
             <div className="space-y-3">
               <div>
                 <label className="text-sm font-medium text-gray-500">Brand & Model</label>
-                <p className="text-gray-900">{workOrder.minerModel.brand} {workOrder.minerModel.model}</p>
+                <p className="text-gray-900">
+                  {workOrder.minerModel ? `${workOrder.minerModel.brand} ${workOrder.minerModel.model}` : 'ไม่ระบุ'}
+                </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Hash Rate</label>
-                <p className="text-gray-900">{workOrder.minerModel.hashRate}</p>
+                <p className="text-gray-900">
+                  {workOrder.minerModel ? workOrder.minerModel.hashRate : 'ไม่ระบุ'}
+                </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Serial Number</label>

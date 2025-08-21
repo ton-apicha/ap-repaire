@@ -120,6 +120,54 @@ export const changePasswordSchema = z.object({
   path: ["confirmPassword"],
 })
 
+// Invoice System Validations
+export const invoiceItemSchema = z.object({
+  description: z.string().min(1, 'Description is required'),
+  quantity: z.number().positive('Quantity must be positive'),
+  unitPrice: z.number().nonnegative('Unit price must be non-negative'),
+  type: z.enum(['SERVICE', 'PARTS', 'LABOR', 'OTHER']),
+})
+
+export const createInvoiceSchema = z.object({
+  customerId: z.string().min(1, 'Customer is required'),
+  workOrderId: z.string().optional(),
+  issueDate: z.date(),
+  dueDate: z.date(),
+  items: z.array(invoiceItemSchema).min(1, 'At least one item is required'),
+  notes: z.string().optional(),
+  terms: z.string().optional(),
+  taxRate: z.number().min(0).max(100).optional(),
+  discountAmount: z.number().min(0).optional(),
+})
+
+export const updateInvoiceSchema = z.object({
+  status: z.enum(['DRAFT', 'SENT', 'PAID', 'OVERDUE', 'CANCELLED', 'PARTIAL']).optional(),
+  issueDate: z.date().optional(),
+  dueDate: z.date().optional(),
+  notes: z.string().optional(),
+  terms: z.string().optional(),
+  items: z.array(invoiceItemSchema).optional(),
+  taxRate: z.number().min(0).max(100).optional(),
+  discountAmount: z.number().min(0).optional(),
+})
+
+export const createPaymentSchema = z.object({
+  invoiceId: z.string().min(1, 'Invoice is required'),
+  amount: z.number().positive('Amount must be positive'),
+  paymentMethod: z.enum(['CASH', 'BANK_TRANSFER', 'CREDIT_CARD', 'DEBIT_CARD', 'CHECK', 'DIGITAL_WALLET', 'OTHER']),
+  paymentDate: z.date().optional(),
+  reference: z.string().optional(),
+  notes: z.string().optional(),
+})
+
+export const invoiceFilterSchema = z.object({
+  status: z.enum(['DRAFT', 'SENT', 'PAID', 'OVERDUE', 'CANCELLED', 'PARTIAL']).optional(),
+  customerId: z.string().optional(),
+  dateFrom: z.date().optional(),
+  dateTo: z.date().optional(),
+  search: z.string().optional(),
+})
+
 // Export types
 export type User = z.infer<typeof userSchema>
 export type Customer = z.infer<typeof customerSchema>

@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -26,6 +26,7 @@ model User {
   customerRepairs    Customer[]
   technicianRepairs  Technician[]
   createdWorkOrders  WorkOrder[] @relation("CreatedBy")
+  createdInvoices    Invoice[] @relation("InvoiceCreatedBy")
 
   @@map("users")
 }
@@ -45,6 +46,7 @@ model Customer {
 
   // Relations
   workOrders WorkOrder[]
+  invoices   Invoice[]
 
   @@map("customers")
 }
@@ -111,9 +113,74 @@ model WorkOrder {
   createdBy     String
   createdByUser User          @relation("CreatedBy", fields: [createdBy], references: [id])
 
+  // Relations
+  invoices     Invoice[]
+
   @@map("work_orders")
 }
 
+// Invoice System Models
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  workOrderId   String?
+  workOrder     WorkOrder?    @relation(fields: [workOrderId], references: [id])
+  status        InvoiceStatus @default(DRAFT)
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime
+  subtotal      Float         @default(0)
+  taxAmount     Float         @default(0)
+  discountAmount Float        @default(0)
+  totalAmount   Float         @default(0)
+  paidAmount    Float         @default(0)
+  balanceAmount Float         @default(0)
+  notes         String?
+  terms         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  createdBy     String
+  createdByUser User          @relation("InvoiceCreatedBy", fields: [createdBy], references: [id])
+
+  // Relations
+  items         InvoiceItem[]
+  payments      Payment[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float    @default(1)
+  unitPrice   Float
+  totalPrice  Float
+  type        InvoiceItemType @default(SERVICE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("invoice_items")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount        Float
+  paymentDate   DateTime      @default(now())
+  paymentMethod PaymentMethod
+  reference     String?       // Payment reference number
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+// Enums
 enum UserRole {
   ADMIN
   MANAGER
@@ -134,4 +201,30 @@ enum Priority {
   MEDIUM
   HIGH
   URGENT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+  PARTIAL
+}
+
+enum InvoiceItemType {
+  SERVICE
+  PARTS
+  LABOR
+  OTHER
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CREDIT_CARD
+  DEBIT_CARD
+  CHECK
+  DIGITAL_WALLET
+  OTHER
 }

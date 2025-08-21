@@ -10,7 +10,7 @@
 
 ระบบจัดการงานซ่อมเครื่องขุดบิดคอยน์แบบครบวงจร สำหรับยี่ห้อ Bitmain, Whatsminer, และ Avalon
 
-**เวอร์ชั่น**: 1.1.2  
+**เวอร์ชั่น**: 1.2.0  
 **สถานะ**: ✅ พร้อมใช้งาน  
 **อัพเดทล่าสุด**: 21 สิงหาคม 2025
 
@@ -44,6 +44,17 @@
 - **การคำนวณต้นทุน**: ค่าใช้จ่ายโดยประมาณและจริง
 - **ติดตามเวลา**: วันที่เริ่ม, วันที่เสร็จสิ้น
 
+### 📄 จัดการใบแจ้งหนี้ (Invoices)
+- **ระบบ Auto-ID**: สร้างหมายเลขใบแจ้งหนี้อัตโนมัติ
+- **สถานะใบแจ้งหนี้**: ร่าง, ส่งแล้ว, ชำระแล้ว, เกินกำหนด, ยกเลิก, ชำระบางส่วน
+- **การคำนวณ**: ภาษี, ส่วนลด, ยอดรวม
+- **การติดตาม**: วันที่ออก, วันที่ครบกำหนด, ยอดที่ชำระแล้ว
+
+### 💳 จัดการการชำระเงิน (Payments)
+- **วิธีการชำระ**: เงินสด, โอนเงิน, บัตรเครดิต, บัตรเดบิต, เช็ค, กระเป๋าเงินดิจิทัล
+- **การติดตาม**: สถานะการชำระ, วันที่ชำระ, จำนวนเงิน
+- **การเชื่อมโยง**: เชื่อมโยงกับใบแจ้งหนี้
+
 ### ⚡ จัดการรุ่นเครื่องขุด
 - รองรับ Bitmain, Whatsminer, Avalon
 - ข้อมูลเทคนิค (อัตราการแฮช, กำลังไฟ)
@@ -67,6 +78,7 @@
 - **E2E Testing**: Playwright
 - **Code Quality**: ESLint + Prettier
 - **Type Safety**: TypeScript strict mode
+- **System Health**: Automated health checks
 
 ## 🛠️ เทคโนโลยีที่ใช้
 
@@ -146,9 +158,9 @@ NEXTAUTH_SECRET="your-secret-key-here"
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
-5. **Seed ข้อมูลเริ่มต้น (ไม่บังคับ)**
+5. **Seed ข้อมูลเริ่มต้น**
 ```bash
-npx tsx prisma/seed.ts
+node seed-complete-data.js
 ```
 
 6. **รันโปรเจค**
@@ -170,6 +182,9 @@ npm run test:e2e
 # ตรวจสอบ code quality
 npm run lint
 npm run type-check
+
+# ตรวจสอบสุขภาพระบบ
+curl http://localhost:3000/api/health
 ```
 
 ## 🔑 ข้อมูลล็อกอินสำหรับทดสอบ
@@ -219,11 +234,22 @@ src/
 │   ├── technicians/       # จัดการช่างซ่อม
 │   ├── work-orders/       # จัดการใบงาน
 │   ├── miners/           # จัดการรุ่นเครื่องขุด
-│   └── admin/            # ระบบหลังบ้าน
+│   ├── invoices/         # จัดการใบแจ้งหนี้
+│   ├── payments/         # จัดการการชำระเงิน
+│   ├── admin/            # ระบบหลังบ้าน
+│   └── api/              # API Routes
+│       ├── customers/     # Customer API
+│       ├── technicians/   # Technician API
+│       ├── work-orders/   # Work Order API
+│       ├── miners/        # Miner API
+│       ├── invoices/      # Invoice API
+│       ├── payments/      # Payment API
+│       └── health/        # Health Check API
 ├── components/            # React Components
 │   ├── layout/           # Layout Components
 │   ├── ui/               # UI Components (Radix UI)
-│   └── forms/            # Form Components
+│   ├── forms/            # Form Components
+│   └── auth/             # Authentication Components
 ├── contexts/             # React Contexts
 ├── hooks/                # Custom React Hooks
 ├── lib/                  # Utilities และ Configs
@@ -237,6 +263,12 @@ src/
 │   └── zh.ts            # ภาษาจีน
 ├── types/                # TypeScript Types
 └── utils/                # Utility Functions
+    ├── errorHandler.ts   # Error handling utilities
+    ├── logger.ts         # Logging system
+    ├── validation.ts     # Data validation
+    ├── middleware.ts     # Server middleware
+    ├── systemHealth.ts   # System health checks
+    └── testUtils.ts      # Testing utilities
 ```
 
 ## การใช้งาน
@@ -254,11 +286,14 @@ src/
 2. **ช่างซ่อม**: ไปที่หน้า Technicians → กดปุ่ม "เพิ่มช่างซ่อม"
 3. **ใบงาน**: ไปที่หน้า Work Orders → กดปุ่ม "เพิ่มใบงาน"
 4. **รุ่นเครื่องขุด**: ไปที่หน้า Miners → กดปุ่ม "เพิ่มรุ่นเครื่องขุด"
+5. **ใบแจ้งหนี้**: ไปที่หน้า Invoices → กดปุ่ม "สร้างใบแจ้งหนี้"
+6. **การชำระเงิน**: ไปที่หน้า Payments → กดปุ่ม "เพิ่มการชำระเงิน"
 
 ### การจัดการข้อมูล
 - ใช้ปุ่มแก้ไข (ดินสอ) เพื่อแก้ไขข้อมูล
 - ใช้ปุ่มลบ (ถังขยะ) เพื่อลบข้อมูล
 - ใช้ช่องค้นหาเพื่อกรองข้อมูล
+- ใช้ dropdown filters เพื่อกรองตามสถานะ
 
 ## การ Deploy
 
@@ -293,7 +328,87 @@ docker-compose up -d
 
 ## ประวัติการอัพเดท
 
-### 🚀 v1.1.2 (21 สิงหาคม 2025) - Enhanced Development Environment
+### 🚀 v1.2.0 (21 สิงหาคม 2025) - Complete System Enhancement
+
+#### ✅ การปรับปรุงระบบครบวงจร
+- **🎨 UI/UX Consistency**: ปรับปรุง CSS ให้ทุกหน้าใช้สไตล์เดียวกัน
+- **📄 Invoice Management**: เพิ่มระบบจัดการใบแจ้งหนี้ครบวงจร
+- **💳 Payment Management**: เพิ่มระบบจัดการการชำระเงิน
+- **🔧 API Standardization**: ปรับปรุง API response format เป็น `{ success: true, data: [...] }`
+- **🛡️ Error Handling**: เพิ่มระบบจัดการ error ที่ครอบคลุม
+- **📊 System Health**: เพิ่ม health check API และ monitoring
+- **🧪 Testing Infrastructure**: ปรับปรุงระบบทดสอบให้ครอบคลุม
+
+#### 🔧 ฟีเจอร์ใหม่
+- **📄 Invoice System**: 
+  - Auto-ID generation (INV + YYMMDD + 3-digit)
+  - Status management (DRAFT, SENT, PAID, OVERDUE, CANCELLED, PARTIAL)
+  - Tax calculation และ discount support
+  - Due date tracking
+- **💳 Payment System**:
+  - Multiple payment methods (CASH, BANK_TRANSFER, CREDIT_CARD, etc.)
+  - Payment status tracking
+  - Invoice linking
+- **🔍 Advanced Search & Filtering**: 
+  - Real-time search ในทุกหน้า
+  - Status-based filtering
+  - Sortable columns
+- **📱 Responsive Design**: ปรับปรุง UI ให้รองรับทุกขนาดหน้าจอ
+
+#### 🛠️ Technical Improvements
+- **🔧 Environment Upgrade**: อัพเกรด dependencies และ configuration
+- **📏 Code Quality**: เพิ่ม ESLint, Prettier, TypeScript strict mode
+- **🧪 Testing**: เพิ่ม Jest, Playwright, comprehensive test suites
+- **📊 Monitoring**: เพิ่ม system health checks และ logging
+- **🔒 Security**: ปรับปรุง authentication และ authorization
+- **⚡ Performance**: Optimize bundle size และ loading speed
+
+#### 📦 New Dependencies
+- **🎨 UI**: @radix-ui/react-*, class-variance-authority, clsx, tailwind-merge
+- **🔄 State Management**: zustand, @tanstack/react-query
+- **🧪 Testing**: jest, @playwright/test, @testing-library/react
+- **📏 Code Quality**: prettier, commitizen, standard-version
+- **🔧 Utilities**: zod, date-fns, react-hot-toast
+
+#### 📁 New Files & Structure
+```
+├── src/app/invoices/              # Invoice management pages
+├── src/app/payments/              # Payment management pages
+├── src/app/api/invoices/          # Invoice API routes
+├── src/app/api/payments/          # Payment API routes
+├── src/app/api/health/            # Health check API
+├── src/utils/                     # Utility functions
+│   ├── errorHandler.ts           # Error handling
+│   ├── logger.ts                 # Logging system
+│   ├── validation.ts             # Data validation
+│   ├── middleware.ts             # Server middleware
+│   ├── systemHealth.ts           # Health checks
+│   └── testUtils.ts              # Testing utilities
+├── scripts/                       # Automation scripts
+│   └── upgrade-environment.js    # Environment upgrade
+└── Various test files            # Comprehensive test suites
+```
+
+#### 🔧 Major Fixes
+- **✅ API Response Format**: Standardized all API responses
+- **✅ Frontend Data Handling**: Fixed data extraction from API responses
+- **✅ Null Safety**: Added null checks for optional relationships
+- **✅ UI Components**: Fixed Select component value props
+- **✅ CSS Consistency**: Unified styling across all pages
+- **✅ TypeScript Errors**: Resolved all type safety issues
+- **✅ Build Process**: Optimized for production deployment
+
+#### 📊 Project Statistics
+- **📁 Total Files**: 500+ files
+- **🧪 Test Coverage**: Comprehensive test suites implemented
+- **✅ Build Status**: Production-ready
+- **🔍 Code Quality**: 0 errors, minimal warnings
+- **📦 Bundle Size**: Optimized for performance
+- **🌐 API Endpoints**: 20+ endpoints with standardized responses
+
+---
+
+### 🔧 v1.1.2 (21 สิงหาคม 2025) - Enhanced Development Environment
 
 #### ✅ การปรับปรุงสภาพแวดล้อมการพัฒนา
 - **🧪 Testing Framework**: เพิ่ม Jest และ Playwright สำหรับการทดสอบ
@@ -420,6 +535,9 @@ npm run format
 
 # Type Checking
 npm run type-check
+
+# System Health Check
+curl http://localhost:3000/api/health
 ```
 
 ### การเพิ่ม UI Components

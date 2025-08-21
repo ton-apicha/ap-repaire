@@ -103,10 +103,10 @@ export default function WorkOrders() {
       const techniciansData = await techniciansRes.json()
       const minerModelsData = await minerModelsRes.json()
 
-      setWorkOrders(workOrdersData)
-      setCustomers(customersData)
-      setTechnicians(techniciansData)
-      setMinerModels(minerModelsData)
+      setWorkOrders(workOrdersData.data || [])
+      setCustomers(customersData.data || [])
+      setTechnicians(techniciansData.data || [])
+      setMinerModels(minerModelsData.data || [])
     } catch (error) {
       console.error('Error fetching data:', error)
       toast.error('Failed to fetch data')
@@ -147,7 +147,7 @@ export default function WorkOrders() {
 
       if (response.ok) {
         const newWorkOrder = await response.json()
-        setWorkOrders(prev => [newWorkOrder, ...prev])
+        setWorkOrders(prev => [newWorkOrder.data, ...prev])
         setShowAddModal(false)
         setFormData({
           customerId: '',
@@ -191,8 +191,8 @@ export default function WorkOrders() {
           bValue = b.technician.name.toLowerCase()
           break
         case 'minerModelName':
-          aValue = `${a.minerModel.brand} ${a.minerModel.model}`.toLowerCase()
-          bValue = `${b.minerModel.brand} ${b.minerModel.model}`.toLowerCase()
+          aValue = a.minerModel ? `${a.minerModel.brand} ${a.minerModel.model}`.toLowerCase() : ''
+          bValue = b.minerModel ? `${b.minerModel.brand} ${b.minerModel.model}`.toLowerCase() : ''
           break
         case 'issue':
           aValue = a.issue.toLowerCase()
@@ -256,7 +256,7 @@ export default function WorkOrders() {
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.technician.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${order.minerModel.brand} ${order.minerModel.model}`.toLowerCase().includes(searchTerm.toLowerCase())
+      (order.minerModel ? `${order.minerModel.brand} ${order.minerModel.model}` : '').toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesStatus = statusFilter === 'all' || order.status.toLowerCase() === statusFilter.toLowerCase()
     
@@ -511,7 +511,9 @@ export default function WorkOrders() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div>
-                        <div className="font-medium">{order.minerModel.brand} {order.minerModel.model}</div>
+                        <div className="font-medium">
+                          {order.minerModel ? `${order.minerModel.brand} ${order.minerModel.model}` : 'ไม่ระบุ'}
+                        </div>
                         <div className="text-xs text-gray-400">{order.serialNumber}</div>
                       </div>
                     </td>

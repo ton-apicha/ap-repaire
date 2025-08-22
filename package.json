@@ -1,6 +1,6 @@
 {
   "name": "ap-repaire",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3000",
@@ -60,7 +60,9 @@
     "postinstall": "prisma generate",
     "prebuild": "npm run type-check",
     "precommit": "npm run lint:fix && npm run format",
-    "create-page": "tsx scripts/create-page.ts"
+    "create-page": "tsx scripts/create-page.ts",
+    "manage-users": "node scripts/manage-users.js",
+    "test-users": "node scripts/test-user-system.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",

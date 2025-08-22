@@ -308,11 +308,11 @@ export default function Admin() {
   })
 
   const categories = [
-    { id: 'all', name: 'All Categories' },
-    { id: 'management', name: 'User Management' },
-    { id: 'system', name: 'System Settings' },
-    { id: 'monitoring', name: 'Monitoring & Analytics' },
-    { id: 'data', name: 'Data & Reports' },
+    { id: 'all', name: t('admin.allCategories') },
+    { id: 'management', name: t('admin.userManagement') },
+    { id: 'system', name: t('admin.systemSettings') },
+    { id: 'monitoring', name: t('admin.monitoring') },
+    { id: 'data', name: t('admin.reports') },
   ]
 
   const filteredFeatures = selectedCategory === 'all' 
@@ -422,7 +422,7 @@ export default function Admin() {
 
           {/* System Statistics */}
           <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">System Statistics</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.systemStatistics')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
               <div className="text-center">
                 <p className="text-sm text-gray-500">{t('admin.uptime')}</p>
@@ -499,7 +499,7 @@ export default function Admin() {
                       onClick={() => router.push(feature.href)}
                       className="w-full inline-flex justify-center items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                     >
-                      Access
+                      {t('admin.access')}
                     </button>
                   </div>
                 </div>

@@ -61,7 +61,7 @@ export default function AdminUsers() {
       setUsers(data)
     } catch (error) {
       console.error('Error fetching users:', error)
-      toast.error('Failed to load users')
+      toast.error(t('admin.failedToLoadUsers'))
     } finally {
       setLoading(false)
     }
@@ -182,7 +182,7 @@ export default function AdminUsers() {
     e.preventDefault()
     
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match')
+      toast.error(t('admin.passwordsDoNotMatch'))
       return
     }
 
@@ -215,10 +215,10 @@ export default function AdminUsers() {
         password: '',
         confirmPassword: '',
       })
-      toast.success('User created successfully')
+      toast.success(t('admin.userCreatedSuccessfully'))
     } catch (error: any) {
       console.error('Error creating user:', error)
-      toast.error(error.message || 'Failed to create user')
+      toast.error(error.message || t('admin.failedToCreateUser'))
     }
   }
 
@@ -258,15 +258,15 @@ export default function AdminUsers() {
         password: '',
         confirmPassword: '',
       })
-      toast.success('User updated successfully')
+      toast.success(t('admin.userUpdatedSuccessfully'))
     } catch (error: any) {
       console.error('Error updating user:', error)
-      toast.error(error.message || 'Failed to update user')
+      toast.error(error.message || t('admin.failedToUpdateUser'))
     }
   }
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) {
+    if (!confirm(t('admin.confirmDeleteUser'))) {
       return
     }
 
@@ -281,10 +281,10 @@ export default function AdminUsers() {
       }
 
       setUsers(users.filter(user => user.id !== userId))
-      toast.success('User deleted successfully')
+      toast.success(t('admin.userDeletedSuccessfully'))
     } catch (error: any) {
       console.error('Error deleting user:', error)
-      toast.error(error.message || 'Failed to delete user')
+      toast.error(error.message || t('admin.failedToDeleteUser'))
     }
   }
 
@@ -307,15 +307,15 @@ export default function AdminUsers() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-              <p className="mt-2 text-gray-600">Manage system users and their permissions</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('admin.userManagement')}</h1>
+              <p className="mt-2 text-gray-600">{t('admin.userManagementDescription')}</p>
             </div>
             <button
               onClick={() => setShowAddModal(true)}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
-              Add User
+              {t('admin.addUser')}
             </button>
           </div>
 
@@ -328,7 +328,7 @@ export default function AdminUsers() {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search users..."
+                  placeholder={t('admin.searchUsers')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -339,14 +339,14 @@ export default function AdminUsers() {
                 onChange={(e) => setRoleFilter(e.target.value)}
                 className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               >
-                <option value="all">All Roles</option>
-                <option value="ADMIN">Admin</option>
-                <option value="MANAGER">Manager</option>
-                <option value="TECHNICIAN">Technician</option>
-                <option value="USER">User</option>
+                <option value="all">{t('admin.allRoles')}</option>
+                <option value="ADMIN">{t('admin.adminRole')}</option>
+                <option value="MANAGER">{t('admin.managerRole')}</option>
+                <option value="TECHNICIAN">{t('admin.technicianRole')}</option>
+                <option value="USER">{t('admin.userRole')}</option>
               </select>
               <div className="text-sm text-gray-500 flex items-center">
-                Total Users: {users.length}
+{t('admin.totalUsers')}: {users.length}
               </div>
             </div>
           </div>
@@ -356,7 +356,7 @@ export default function AdminUsers() {
             {loading ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-gray-500">Loading users...</p>
+                <p className="mt-2 text-gray-500">{t('admin.loadingUsers')}</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -364,14 +364,14 @@ export default function AdminUsers() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+                        {t('admin.actions')}
                       </th>
                       <th 
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                         onClick={() => handleSort('name')}
                       >
                         <div className="flex items-center space-x-1">
-                          <span>User</span>
+                          <span>{t('admin.user')}</span>
                           {getSortIcon('name')}
                         </div>
                       </th>
@@ -380,7 +380,7 @@ export default function AdminUsers() {
                         onClick={() => handleSort('role')}
                       >
                         <div className="flex items-center space-x-1">
-                          <span>Role</span>
+                          <span>{t('admin.role')}</span>
                           {getSortIcon('role')}
                         </div>
                       </th>
@@ -389,7 +389,7 @@ export default function AdminUsers() {
                         onClick={() => handleSort('createdAt')}
                       >
                         <div className="flex items-center space-x-1">
-                          <span>Created</span>
+                          <span>{t('admin.created')}</span>
                           {getSortIcon('createdAt')}
                         </div>
                       </th>
@@ -398,7 +398,7 @@ export default function AdminUsers() {
                         onClick={() => handleSort('updatedAt')}
                       >
                         <div className="flex items-center space-x-1">
-                          <span>Last Updated</span>
+                          <span>{t('admin.lastUpdated')}</span>
                           {getSortIcon('updatedAt')}
                         </div>
                       </th>
@@ -460,7 +460,7 @@ export default function AdminUsers() {
                 </table>
                 {filteredUsers.length === 0 && !loading && (
                   <div className="p-8 text-center text-gray-500">
-                    No users found
+{t('admin.noUsersFound')}
                   </div>
                 )}
               </div>
@@ -477,7 +477,7 @@ export default function AdminUsers() {
                   <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-white">
-                        Add New User
+{t('admin.addNewUser')}
                       </h3>
                       <button
                         onClick={() => setShowAddModal(false)}
@@ -493,7 +493,7 @@ export default function AdminUsers() {
                   <form onSubmit={handleAddUser} className="px-6 py-4 space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Name
+                        {t('admin.name')}
                       </label>
                       <input
                         type="text"
@@ -505,7 +505,7 @@ export default function AdminUsers() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Email
+                        {t('admin.email')}
                       </label>
                       <input
                         type="email"
@@ -517,22 +517,22 @@ export default function AdminUsers() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Role
+                        {t('admin.role')}
                       </label>
                       <select
                         value={formData.role}
                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                         className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="USER">User</option>
-                        <option value="TECHNICIAN">Technician</option>
-                        <option value="MANAGER">Manager</option>
-                        <option value="ADMIN">Admin</option>
+                        <option value="USER">{t('admin.userRole')}</option>
+                        <option value="TECHNICIAN">{t('admin.technicianRole')}</option>
+                        <option value="MANAGER">{t('admin.managerRole')}</option>
+                        <option value="ADMIN">{t('admin.adminRole')}</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Password
+                        {t('admin.password')}
                       </label>
                       <input
                         type="password"
@@ -544,7 +544,7 @@ export default function AdminUsers() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Confirm Password
+                        {t('admin.confirmPassword')}
                       </label>
                       <input
                         type="password"
@@ -561,13 +561,13 @@ export default function AdminUsers() {
                         onClick={() => setShowAddModal(false)}
                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                       >
-                        Cancel
+{t('admin.cancel')}
                       </button>
                       <button
                         type="submit"
                         className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                       >
-                        Add User
+{t('admin.addUser')}
                       </button>
                     </div>
                   </form>
@@ -586,7 +586,7 @@ export default function AdminUsers() {
                   <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-white">
-                        Edit User
+{t('admin.editUser')}
                       </h3>
                       <button
                         onClick={() => setShowEditModal(false)}
@@ -641,7 +641,7 @@ export default function AdminUsers() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        New Password (leave blank to keep current)
+{t('admin.newPassword')}
                       </label>
                       <input
                         type="password"
@@ -657,13 +657,13 @@ export default function AdminUsers() {
                         onClick={() => setShowEditModal(false)}
                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                       >
-                        Cancel
+{t('admin.cancel')}
                       </button>
                       <button
                         type="submit"
                         className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                       >
-                        Update User
+{t('admin.updateUser')}
                       </button>
                     </div>
                   </form>

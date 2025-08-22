@@ -21,9 +21,6 @@ const config: Config = {
           900: '#111827',
         },
       },
-      borderColor: {
-        'gray-300': '#d1d5db',
-      },
     },
   },
   plugins: [],

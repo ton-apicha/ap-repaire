@@ -80,7 +80,8 @@ export const zh = {
     workOrderStatus: "工作订单状态",
     technicianWorkload: "技术人员工作量",
     customerGrowth: "客户增长",
-    repairTrends: "维修趋势"
+    repairTrends: "维修趋势",
+    totalMiners: "矿机总数"
   },
   customers: {
     title: "客户",

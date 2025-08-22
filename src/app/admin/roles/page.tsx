@@ -23,7 +23,38 @@ interface Role {
   userCount: number
   createdAt: string
   updatedAt: string
+  isActive: boolean
+  isSystem: boolean
+  createdBy?: {
+    id: string
+    name: string
+    email: string
+  }
 }
+
+// Available permissions based on actual API
+const availablePermissions = [
+  { id: 'user_management', name: 'User Management', description: 'Manage users and their accounts' },
+  { id: 'role_management', name: 'Role Management', description: 'Manage roles and permissions' },
+  { id: 'permission_management', name: 'Permission Management', description: 'Manage system permissions' },
+  { id: 'system_settings', name: 'System Settings', description: 'Configure system settings' },
+  { id: 'backup_management', name: 'Backup Management', description: 'Manage system backups' },
+  { id: 'audit_logs', name: 'Audit Logs', description: 'View system audit logs' },
+  { id: 'work_orders_manage', name: 'Work Orders (Manage)', description: 'Create and manage work orders' },
+  { id: 'work_orders_view', name: 'Work Orders (View)', description: 'View work orders only' },
+  { id: 'customers_manage', name: 'Customers (Manage)', description: 'Manage customer information' },
+  { id: 'customers_view', name: 'Customers (View)', description: 'View customer information only' },
+  { id: 'technicians_manage', name: 'Technicians (Manage)', description: 'Manage technician information' },
+  { id: 'technicians_view', name: 'Technicians (View)', description: 'View technician information only' },
+  { id: 'miners_manage', name: 'Miners (Manage)', description: 'Manage miner models and inventory' },
+  { id: 'miners_view', name: 'Miners (View)', description: 'View miner information only' },
+  { id: 'invoices_manage', name: 'Invoices (Manage)', description: 'Create and manage invoices' },
+  { id: 'invoices_view', name: 'Invoices (View)', description: 'View invoices only' },
+  { id: 'payments_manage', name: 'Payments (Manage)', description: 'Manage payment processing' },
+  { id: 'payments_view', name: 'Payments (View)', description: 'View payment information only' },
+  { id: 'reports_view', name: 'Reports (View)', description: 'View system reports' },
+  { id: 'analytics_view', name: 'Analytics (View)', description: 'View analytics and insights' },
+]
 
 export default function AdminRoles() {
   const { t } = useLanguage()
@@ -38,6 +69,7 @@ export default function AdminRoles() {
     description: '',
     permissions: [] as string[],
   })
+  const [expandedPermissions, setExpandedPermissions] = useState(false)
 
   // Mock data for roles
   const mockRoles: Role[] = [
@@ -49,6 +81,8 @@ export default function AdminRoles() {
       userCount: 2,
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
+      isActive: true,
+      isSystem: true,
     },
     {
       id: '2',
@@ -58,6 +92,8 @@ export default function AdminRoles() {
       userCount: 5,
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
+      isActive: true,
+      isSystem: false,
     },
     {
       id: '3',
@@ -67,6 +103,8 @@ export default function AdminRoles() {
       userCount: 8,
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
+      isActive: true,
+      isSystem: false,
     },
     {
       id: '4',
@@ -76,6 +114,8 @@ export default function AdminRoles() {
       userCount: 15,
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
+      isActive: true,
+      isSystem: false,
     },
     {
       id: '5',
@@ -85,6 +125,8 @@ export default function AdminRoles() {
       userCount: 25,
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
+      isActive: true,
+      isSystem: false,
     },
   ]
 
@@ -142,6 +184,29 @@ export default function AdminRoles() {
     }
   }
 
+  const handlePermissionToggle = (permissionId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: prev.permissions.includes(permissionId)
+        ? prev.permissions.filter(p => p !== permissionId)
+        : [...prev.permissions, permissionId]
+    }))
+  }
+
+  const handleSelectAllPermissions = () => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: availablePermissions.map(p => p.id)
+    }))
+  }
+
+  const handleClearAllPermissions = () => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: []
+    }))
+  }
+
   const handleAddRole = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -154,6 +219,8 @@ export default function AdminRoles() {
         userCount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        isActive: true,
+        isSystem: false,
       }
 
       setRoles([newRole, ...roles])
@@ -201,6 +268,14 @@ export default function AdminRoles() {
   }
 
   const handleDeleteRole = async (roleId: string) => {
+    const role = roles.find(r => r.id === roleId)
+    if (!role) return
+
+    if (role.isSystem) {
+      toast.error('Cannot delete system roles')
+      return
+    }
+
     if (!confirm('Are you sure you want to delete this role?')) {
       return
     }
@@ -215,6 +290,11 @@ export default function AdminRoles() {
   }
 
   const openEditModal = (role: Role) => {
+    if (role.isSystem) {
+      toast.error('System roles cannot be edited')
+      return
+    }
+    
     setSelectedRole(role)
     setFormData({
       name: role.name,
@@ -223,6 +303,55 @@ export default function AdminRoles() {
     })
     setShowEditModal(true)
   }
+
+  const PermissionSelector = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-medium text-gray-700">
+          Permissions
+        </label>
+        <div className="flex space-x-2">
+          <button
+            type="button"
+            onClick={handleSelectAllPermissions}
+            className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+          >
+            Select All
+          </button>
+          <button
+            type="button"
+            onClick={handleClearAllPermissions}
+            className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+          >
+            Clear All
+          </button>
+        </div>
+      </div>
+      
+      <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md p-3">
+        <div className="space-y-2">
+          {availablePermissions.map((permission) => (
+            <label key={permission.id} className="flex items-start space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded">
+              <input
+                type="checkbox"
+                checked={formData.permissions.includes(permission.id)}
+                onChange={() => handlePermissionToggle(permission.id)}
+                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-gray-900">{permission.name}</div>
+                <div className="text-xs text-gray-500">{permission.description}</div>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+      
+      <div className="text-xs text-gray-500">
+        Selected: {formData.permissions.length} of {availablePermissions.length} permissions
+      </div>
+    </div>
+  )
 
   return (
     <AuthGuard requiredRole="ADMIN">
@@ -291,6 +420,9 @@ export default function AdminRoles() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t('admin.lastUpdated')}
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Created By
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -300,13 +432,17 @@ export default function AdminRoles() {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => openEditModal(role)}
-                              className="text-blue-600 hover:text-blue-900"
+                              className={`${role.isSystem ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-900'}`}
+                              disabled={role.isSystem}
+                              title={role.isSystem ? 'System roles cannot be edited' : 'Edit role'}
                             >
                               <PencilIcon className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteRole(role.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className={`${role.isSystem ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-900'}`}
+                              disabled={role.isSystem}
+                              title={role.isSystem ? 'System roles cannot be deleted' : 'Delete role'}
                             >
                               <TrashIcon className="h-4 w-4" />
                             </button>
@@ -352,15 +488,35 @@ export default function AdminRoles() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
+                          <div className="flex items-center space-x-2">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(role.name)}`}>
                               <UserGroupIcon className="h-4 w-4 mr-1" />
                               {role.userCount}
                             </span>
+                            {role.isSystem && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                System
+                              </span>
+                            )}
+                            {!role.isActive && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Inactive
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(role.updatedAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {role.createdBy ? (
+                            <div>
+                              <div className="font-medium text-gray-900">{role.createdBy.name}</div>
+                              <div className="text-xs text-gray-500">{role.createdBy.email}</div>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">System</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -381,7 +537,7 @@ export default function AdminRoles() {
               <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm transition-opacity"></div>
               
               <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
                   <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-white">
@@ -424,6 +580,8 @@ export default function AdminRoles() {
                       />
                     </div>
 
+                    <PermissionSelector />
+
                     <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
                       <button
                         type="button"
@@ -451,11 +609,11 @@ export default function AdminRoles() {
               <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm transition-opacity"></div>
               
               <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
                   <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-white">
-                        Edit Role
+                        Edit Role: {selectedRole.name}
                       </h3>
                       <button
                         onClick={() => setShowEditModal(false)}
@@ -493,6 +651,8 @@ export default function AdminRoles() {
                         required
                       />
                     </div>
+
+                    <PermissionSelector />
 
                     <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
                       <button

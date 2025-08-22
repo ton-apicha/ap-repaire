@@ -80,7 +80,8 @@ export const en = {
     workOrderStatus: "Work Order Status",
     technicianWorkload: "Technician Workload",
     customerGrowth: "Customer Growth",
-    repairTrends: "Repair Trends"
+    repairTrends: "Repair Trends",
+    totalMiners: "Total Miners"
   },
   customers: {
     title: "Customers",

@@ -17,10 +17,55 @@ interface Permission {
   name: string
   description: string
   category: string
+  resource: string
+  action: string
   isActive: boolean
+  isSystem: boolean
+  roleCount: number
+  roles: Array<{
+    id: string
+    name: string
+  }>
   createdAt: string
   updatedAt: string
+  createdBy?: {
+    id: string
+    name: string
+    email: string
+  }
 }
+
+// Available categories based on actual API
+const availableCategories = [
+  'Administration',
+  'Operations', 
+  'Finance',
+  'Analytics'
+]
+
+// Available resources based on actual API
+const availableResources = [
+  'users',
+  'roles',
+  'permissions',
+  'settings',
+  'backups',
+  'audit_logs',
+  'work_orders',
+  'customers',
+  'technicians',
+  'miners',
+  'invoices',
+  'payments',
+  'reports',
+  'analytics'
+]
+
+// Available actions based on actual API
+const availableActions = [
+  'view',
+  'manage'
+]
 
 export default function AdminPermissions() {
   const { t } = useLanguage()
@@ -34,6 +79,8 @@ export default function AdminPermissions() {
     name: '',
     description: '',
     category: '',
+    resource: '',
+    action: '',
     isActive: true,
   })
 
@@ -44,7 +91,12 @@ export default function AdminPermissions() {
       name: 'User Management',
       description: 'Manage system users and their accounts',
       category: 'Administration',
+      resource: 'users',
+      action: 'manage',
       isActive: true,
+      isSystem: false,
+      roleCount: 1,
+      roles: [{ id: '1', name: 'Admin' }],
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
     },
@@ -53,7 +105,12 @@ export default function AdminPermissions() {
       name: 'Role Management',
       description: 'Manage user roles and permissions',
       category: 'Administration',
+      resource: 'roles',
+      action: 'manage',
       isActive: true,
+      isSystem: false,
+      roleCount: 2,
+      roles: [{ id: '1', name: 'Admin' }, { id: '2', name: 'User' }],
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
     },
@@ -62,7 +119,12 @@ export default function AdminPermissions() {
       name: 'Work Orders',
       description: 'Full work order management capabilities',
       category: 'Operations',
+      resource: 'work_orders',
+      action: 'manage',
       isActive: true,
+      isSystem: false,
+      roleCount: 1,
+      roles: [{ id: '1', name: 'Admin' }],
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
     },
@@ -71,7 +133,12 @@ export default function AdminPermissions() {
       name: 'Customer Management',
       description: 'Manage customer information and records',
       category: 'Operations',
+      resource: 'customers',
+      action: 'manage',
       isActive: true,
+      isSystem: false,
+      roleCount: 1,
+      roles: [{ id: '1', name: 'Admin' }],
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
     },
@@ -80,7 +147,12 @@ export default function AdminPermissions() {
       name: 'Invoice Management',
       description: 'Full invoice management capabilities',
       category: 'Finance',
+      resource: 'invoices',
+      action: 'manage',
       isActive: true,
+      isSystem: false,
+      roleCount: 1,
+      roles: [{ id: '1', name: 'Admin' }],
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
     },
@@ -131,6 +203,8 @@ export default function AdminPermissions() {
         return 'bg-blue-100 text-blue-800'
       case 'Finance':
         return 'bg-green-100 text-green-800'
+      case 'Analytics':
+        return 'bg-purple-100 text-purple-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -145,7 +219,12 @@ export default function AdminPermissions() {
         name: formData.name,
         description: formData.description,
         category: formData.category,
+        resource: '', // Placeholder, will be set from availableResources
+        action: '', // Placeholder, will be set from availableActions
         isActive: formData.isActive,
+        isSystem: false, // Default
+        roleCount: 0, // Default
+        roles: [], // Default
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
@@ -156,6 +235,8 @@ export default function AdminPermissions() {
         name: '',
         description: '',
         category: '',
+        resource: '',
+        action: '',
         isActive: true,
       })
       toast.success('Permission created successfully')
@@ -188,6 +269,8 @@ export default function AdminPermissions() {
         name: '',
         description: '',
         category: '',
+        resource: '',
+        action: '',
         isActive: true,
       })
       toast.success('Permission updated successfully')
@@ -198,6 +281,14 @@ export default function AdminPermissions() {
   }
 
   const handleDeletePermission = async (permissionId: string) => {
+    const permission = permissions.find(p => p.id === permissionId)
+    if (!permission) return
+
+    if (permission.isSystem) {
+      toast.error('Cannot delete system permissions')
+      return
+    }
+
     if (!confirm('Are you sure you want to delete this permission?')) {
       return
     }
@@ -212,11 +303,18 @@ export default function AdminPermissions() {
   }
 
   const openEditModal = (permission: Permission) => {
+    if (permission.isSystem) {
+      toast.error('System permissions cannot be edited')
+      return
+    }
+    
     setSelectedPermission(permission)
     setFormData({
       name: permission.name,
       description: permission.description,
       category: permission.category,
+      resource: permission.resource,
+      action: permission.action,
       isActive: permission.isActive,
     })
     setShowEditModal(true)
@@ -284,10 +382,19 @@ export default function AdminPermissions() {
                         Category
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Resource/Action
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Roles
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Last Updated
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Created By
                       </th>
                     </tr>
                   </thead>
@@ -298,13 +405,17 @@ export default function AdminPermissions() {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => openEditModal(permission)}
-                              className="text-blue-600 hover:text-blue-900"
+                              className={`${permission.isSystem ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-900'}`}
+                              disabled={permission.isSystem}
+                              title={permission.isSystem ? 'System permissions cannot be edited' : 'Edit permission'}
                             >
                               <PencilIcon className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDeletePermission(permission.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className={`${permission.isSystem ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-900'}`}
+                              disabled={permission.isSystem}
+                              title={permission.isSystem ? 'System permissions cannot be deleted' : 'Delete permission'}
                             >
                               <TrashIcon className="h-4 w-4" />
                             </button>
@@ -338,16 +449,59 @@ export default function AdminPermissions() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            permission.isActive 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {permission.isActive ? 'Active' : 'Inactive'}
-                          </span>
+                          <div className="text-sm text-gray-900">
+                            <div className="font-medium">{permission.resource}</div>
+                            <div className="text-xs text-gray-500">{permission.action}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-wrap gap-1">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {permission.roleCount} roles
+                            </span>
+                            {permission.roles.slice(0, 2).map((role, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                              >
+                                {role.name}
+                              </span>
+                            ))}
+                            {permission.roles.length > 2 && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                +{permission.roles.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-2">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              permission.isActive 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {permission.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                            {permission.isSystem && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                System
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(permission.updatedAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {permission.createdBy ? (
+                            <div>
+                              <div className="font-medium text-gray-900">{permission.createdBy.name}</div>
+                              <div className="text-xs text-gray-500">{permission.createdBy.email}</div>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">System</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -421,9 +575,41 @@ export default function AdminPermissions() {
                         required
                       >
                         <option value="">Select Category</option>
-                        <option value="Administration">Administration</option>
-                        <option value="Operations">Operations</option>
-                        <option value="Finance">Finance</option>
+                        {availableCategories.map(category => (
+                          <option key={category} value={category}>{category}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Resource
+                      </label>
+                      <select
+                        value={formData.resource}
+                        onChange={(e) => setFormData({ ...formData, resource: e.target.value })}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      >
+                        <option value="">Select Resource</option>
+                        {availableResources.map(resource => (
+                          <option key={resource} value={resource}>{resource}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Action
+                      </label>
+                      <select
+                        value={formData.action}
+                        onChange={(e) => setFormData({ ...formData, action: e.target.value })}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      >
+                        <option value="">Select Action</option>
+                        {availableActions.map(action => (
+                          <option key={action} value={action}>{action}</option>
+                        ))}
                       </select>
                     </div>
                     <div>
@@ -518,9 +704,41 @@ export default function AdminPermissions() {
                         required
                       >
                         <option value="">Select Category</option>
-                        <option value="Administration">Administration</option>
-                        <option value="Operations">Operations</option>
-                        <option value="Finance">Finance</option>
+                        {availableCategories.map(category => (
+                          <option key={category} value={category}>{category}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Resource
+                      </label>
+                      <select
+                        value={formData.resource}
+                        onChange={(e) => setFormData({ ...formData, resource: e.target.value })}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      >
+                        <option value="">Select Resource</option>
+                        {availableResources.map(resource => (
+                          <option key={resource} value={resource}>{resource}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Action
+                      </label>
+                      <select
+                        value={formData.action}
+                        onChange={(e) => setFormData({ ...formData, action: e.target.value })}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      >
+                        <option value="">Select Action</option>
+                        {availableActions.map(action => (
+                          <option key={action} value={action}>{action}</option>
+                        ))}
                       </select>
                     </div>
                     <div>

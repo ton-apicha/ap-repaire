@@ -211,7 +211,7 @@ export default function Dashboard() {
       >
         {/* Stats Grid */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div className="overflow-hidden rounded-lg bg-white shadow">
+          <div className="overflow-hidden rounded-lg bg-white shadow hover:shadow-lg transition-shadow">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0 rounded-md p-3 bg-blue-500">
@@ -231,7 +231,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-lg bg-white shadow">
+          <div className="overflow-hidden rounded-lg bg-white shadow hover:shadow-lg transition-shadow">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0 rounded-md p-3 bg-green-500">
@@ -251,7 +251,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-lg bg-white shadow">
+          <div className="overflow-hidden rounded-lg bg-white shadow hover:shadow-lg transition-shadow">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0 rounded-md p-3 bg-yellow-500">
@@ -271,7 +271,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-lg bg-white shadow">
+          <div className="overflow-hidden rounded-lg bg-white shadow hover:shadow-lg transition-shadow">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0 rounded-md p-3 bg-purple-500">
@@ -287,6 +287,57 @@ export default function Dashboard() {
                     </dd>
                   </dl>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Work Order Status Summary */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+          <div className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-md p-3 bg-yellow-100">
+                <ClockIcon className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {t('dashboard.pendingWorkOrders')}
+                </h3>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {stats.pendingWorkOrders}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-md p-3 bg-green-100">
+                <CheckCircleIcon className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {t('dashboard.completedWorkOrders')}
+                </h3>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.completedWorkOrders}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-md p-3 bg-blue-100">
+                <ClipboardDocumentListIcon className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {t('dashboard.totalMiners')}
+                </h3>
+                <p className="text-2xl font-bold text-blue-600">
+                  {stats.totalMiners}
+                </p>
               </div>
             </div>
           </div>

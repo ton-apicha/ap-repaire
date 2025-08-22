@@ -80,7 +80,8 @@ export const th = {
     workOrderStatus: "สถานะใบงาน",
     technicianWorkload: "งานของช่างซ่อม",
     customerGrowth: "การเติบโตของลูกค้า",
-    repairTrends: "แนวโน้มการซ่อม"
+    repairTrends: "แนวโน้มการซ่อม",
+    totalMiners: "จำนวนเครื่องขุดทั้งหมด"
   },
   customers: {
     title: "ลูกค้า",
